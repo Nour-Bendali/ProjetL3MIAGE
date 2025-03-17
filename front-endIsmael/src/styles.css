@@ -1,0 +1,38 @@
+header {
+    text-align: center;
+}
+main {
+    max-width: 600px;
+    margin: 0 auto;
+}
+input, button {
+    margin: 10px 0;
+    padding: 5px;
+}
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+li {
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+}
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background-color: #f8f9fa; 
+    color: #333; 
+  }
+  
+h1 {
+    color: #007bff; 
+  }
+  
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+.btn-primary:hover {
+    background-color: #0056b3; 
+    border-color: #0056b3;
+  }
