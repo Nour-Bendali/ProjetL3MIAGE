@@ -1,24 +1,17 @@
 <header>
-    <h1>RecruitMIAGE</h1>
-  </header>
-  <main>
-    <section>
-      <h2>Nouveau Projet</h2>
-      <input type="text" placeholder="Nom du projet">
-      <br>
-      <label for="image">Upload Image :</label>
-      <input type="file" id="image">
-      <button type="button">Choisir...</button>
-      <br>
-      <button type="button">Create</button>
-    </section>
-    <section>
-      <h2>Projects</h2>
-      <input type="text" placeholder="Rechercher un projet">
-      <ul>
-        <li>Projet A</li>
-        <li>Projet B</li>
-        <li>Projet C</li>
-      </ul>
-    </section>
-  </main>
+  <h1 class="text-center">RecruitMIAGE - Dashboard Projets</h1>
+</header>
+<main class="container mt-4">
+  <h2>Mes Projets</h2>
+  <div class="row">
+    <div class="col-md-4" *ngFor="let project of projects">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title">{{ project.name }}</h5>
+          <p class="card-text">{{ project.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button routerLink="/" class="btn btn-secondary">Retour</button>
+</main>
