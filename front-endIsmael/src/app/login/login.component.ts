@@ -1,37 +1,48 @@
 import { Component } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router'; // 👈 Ajout de RouterLink pour la navigation
+import { AuthService } from '../auth.service';
 
 @Component({
-  selector: 'app-login',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  imports: [CommonModule, FormsModule, RouterLink], // 👈 Importation des modules nécessaires
 })
 export class LoginComponent {
+  // Champs liés au formulaire de connexion
   email: string = '';
   password: string = '';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  // Injection des services nécessaires : AuthService pour l'authentification et Router pour la navigation
+  constructor(private authService: AuthService, private router: Router) {}
 
-  onLogin() {
-    const loginData = {
-      email: this.email,
-      password: this.password
-    };
-
-    this.http.post('http://localhost:3000/api/login', loginData).subscribe({
-      next: (response) => {
-        console.log('Connexion réussie :', response);
-        alert('Connexion réussie !');
-        this.router.navigate(['/dashboard-projects']);
+  // Méthode appelée lors de la soumission du formulaire
+  onSubmit() {
+    // Appel du service d'authentification avec les identifiants fournis
+    this.authService.login(this.email, this.password).subscribe(
+      (response) => {
+        // Si la réponse est positive, redirection vers le tableau de bord
+        if (response.success) {
+          this.router.navigate(['/dashboard-projects']);
+        } else {
+          // Sinon, alerte utilisateur
+          alert('Identifiants incorrects');
+        }
       },
-      error: (err) => {
-        console.error('Erreur lors de la connexion :', err);
-        alert('Erreur : ' + (err.error?.error || 'Problème serveur'));
+      (error) => {
+        console.error(error);
+  
+        // Gestion personnalisée de l'erreur 400 (ex : champs vides)
+        if (error.status === 400) {
+          alert(error.error?.error || 'Email et mot de passe obligatoires.');
+        } else {
+          // Pour toute autre erreur serveur
+          alert('Erreur du serveur');
+        }
       }
-    });
+    );
   }
 }
