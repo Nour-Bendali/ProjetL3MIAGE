@@ -9,8 +9,8 @@ const port = 3000;
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',           
-  password: '',   // Cambia esto con tu contraseña real
-  database: 'recruitMiage'   // Base de datos correcta
+  password: 'MdMNB01010192@',   // Cambia esto con tu contraseña real
+  database: 'recruitmiage'   // Base de datos correcta
 });
 
 // Middleware
@@ -19,11 +19,11 @@ app.use(cors());
 
 // Ruta POST para autenticación
 app.post('/login', (req, res) => {
-  const { email, password } = req.body;
+  const { Mail, Motdepasse } = req.body;
 
-  const query = 'SELECT * FROM users WHERE email = ? AND password = ?'; // tabla "users", según tu elección previa
+  const query = 'SELECT * FROM Utilisateurs WHERE Mail = ? AND Motdepasse = ?'; // tabla "Utilisateurs", según tu elección previa
 
-  db.execute(query, [email, password], (err, results) => {
+  db.execute(query, [Mail, Motdepasse], (err, results) => {
     if(err){
       console.error("Error en la consulta MySQL:", err); 
       return res.status(500).json({ success: false, error: err.message });
@@ -40,4 +40,33 @@ app.post('/login', (req, res) => {
 // Iniciar el servidor
 app.listen(port, () => {
   console.log(`Servidor ejecutándose en: http://localhost:${port}`);
+});
+
+// Route POST /api/register
+app.post('/api/register', (req, res) => {
+  const { Nom, Prenom, Mail, Motdepasse } = req.body;
+  
+  // Ajout de logs pour déboguer
+  console.log('Données reçues:', req.body);
+  console.log('Valeurs extraites:', { Nom, Prenom, Mail, Motdepasse });
+
+  if (!Nom || !Prenom || !Mail || !Motdepasse) {
+    console.log('Champs manquants:', {
+      Nom: !!Nom,
+      Prenom: !!Prenom,
+      Mail: !!Mail,
+      Motdepasse: !!Motdepasse
+    });
+    return res.status(400).json({ error: 'Tous les champs sont requis' });
+  }
+
+  const query = 'INSERT INTO Utilisateurs (Nom, Prenom, Mail, Motdepasse) VALUES (?, ?, ?, ?)';
+  db.execute(query, [Nom, Prenom, Mail, Motdepasse], (err, result) => {
+    if (err) {
+      console.error('Erreur MySQL :', err);
+      return res.status(500).json({ error: 'Erreur serveur' });
+    }
+
+    res.status(201).json({ message: 'Utilisateur inscrit avec succès', id: result.insertId });
+  });
 });
