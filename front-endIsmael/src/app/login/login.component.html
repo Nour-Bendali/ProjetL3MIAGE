@@ -1,0 +1,46 @@
+<!-- En-tête de la page de connexion -->
+<header>
+  <h1 class="text-center">RecruitMIAGE</h1>
+</header>
+
+<main class="container">
+  <!-- Formulaire de connexion -->
+  <form (ngSubmit)="onSubmit()" novalidate class="mt-4">
+    
+    <!-- Champ pour l'email de l'utilisateur -->
+    <div class="mb-3">
+      <label for="email" class="form-label">Email :</label>
+      <input 
+        type="email" 
+        id="email" 
+        class="form-control" 
+        placeholder="Entrez votre email" 
+        [(ngModel)]="email" 
+        name="email" 
+        required>
+    </div>
+
+    <!-- Champ pour le mot de passe de l'utilisateur -->
+    <div class="mb-3">
+      <label for="password" class="form-label">Mot de passe :</label>
+      <input 
+        type="password" 
+        id="password" 
+        class="form-control" 
+        placeholder="Entrez votre mot de passe" 
+        [(ngModel)]="password" 
+        name="password" 
+        required>
+    </div>
+
+    <!-- Bouton pour soumettre le formulaire de connexion -->
+    <button type="submit" class="btn btn-primary">Connect</button>
+
+    <!-- Bouton pour rediriger vers la page d'inscription -->
+    <button type="button" routerLink="/register" class="btn btn-secondary ms-2">Register</button>
+
+    <!-- Lien pour la récupération du mot de passe -->
+    <br>
+    <a href="#" class="d-block mt-2">Forgot Password</a>
+  </form>
+</main>

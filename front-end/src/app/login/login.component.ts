@@ -1,11 +1,18 @@
 import { Component } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-login',
-  imports: [],
+  standalone: true,
+  imports: [RouterLink],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
+  constructor(private router: Router) {}
 
+  onLogin() {
+    console.log('Bouton Connect cliqué !');
+    this.router.navigate(['/dashboard-projects']);
+  }
 }
