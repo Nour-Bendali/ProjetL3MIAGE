@@ -1,19 +1,19 @@
 const express = require('express');
-const mysql = require('mysql2');
 const cors = require('cors');
+const mysql = require('mysql2');
 
 const app = express();
-const port = 3000; 
+const port = 3000;
 
-// Conexión correcta a tu base de datos MySQL
+// Ajusta con tus credenciales MySQL:
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',           
   password: 'MdMNB01010192@',   // Cambia esto con tu contraseña real
   database: 'recruitmiage'   // Base de datos correcta
+
 });
 
-// Middleware
 app.use(express.json());
 app.use(cors());
 
@@ -21,18 +21,21 @@ app.use(cors());
 app.post('/login', (req, res) => {
   const { Mail, Motdepasse } = req.body;
 
+
   const query = 'SELECT * FROM Utilisateurs WHERE Mail = ? AND Motdepasse = ?'; // tabla "Utilisateurs", según tu elección previa
 
   db.execute(query, [Mail, Motdepasse], (err, results) => {
     if(err){
       console.error("Error en la consulta MySQL:", err); 
+
       return res.status(500).json({ success: false, error: err.message });
     }
 
-    if(results.length > 0){
-      return res.json({ success: true });
+    // Si 'results.length > 0', entonces existe un usuario con esas credenciales
+    if (results.length > 0) {
+      res.json({ success: true });
     } else {
-      return res.json({ success: false });
+      res.json({ success: false });
     }
   });
 });
