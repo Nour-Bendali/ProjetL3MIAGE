@@ -1,4 +1,4 @@
-CREATE DATABASE recruitmiage;
+
 USE recruitmiage;
 
 -- Table des utilisateurs
