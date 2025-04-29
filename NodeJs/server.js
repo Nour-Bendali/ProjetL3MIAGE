@@ -39,7 +39,8 @@ app.post('/api/login', (req, res) => {
   }
 
   // 🔎 Requête SQL pour rechercher un utilisateur correspondant
-  const query = 'SELECT * FROM Utilisateurs WHERE Mail = ? AND Password = ?';
+  //const query = 'SELECT * FROM Utilisateurs WHERE Mail = ? AND Password = ?'; **JULIAN 29/04 Modification avec la bonne table 
+  const query = 'SELECT * FROM personnel WHERE User = ? AND Password = ?';
 
   // 📡 Exécution de la requête SQL
   db.execute(query, [email, password], (err, results) => {
