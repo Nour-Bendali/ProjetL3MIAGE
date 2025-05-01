@@ -139,7 +139,7 @@ app.post('/api/projets/:id/membres', (req, res) => {
     db.execute(addMemberQuery, [id, idPersonnel], (err, result) => {
       if (err) {
         // ❌ Gestion des erreurs SQL
-        console.error('❌ Erreur lors de l’ajout du membre :', err);
+        console.error('❌ Erreur lors de l'ajout du membre :', err);
         return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
       }
 
@@ -153,14 +153,7 @@ app.post('/api/projets/:id/membres', (req, res) => {
 /* 
 =====================================
 📋 Route GET : /api/projets/:id
-Cette route permet de récupérer les détails d’un projet, y compris ses membres et leurs compétences.
-**Ajouté le 01/05/25 pour le composant projet**
-=====================================
-*/
-/* 
-=====================================
-📋 Route GET : /api/projets/:id
-Cette route permet de récupérer les détails d’un projet, y compris ses membres et leurs compétences.
+Cette route permet de récupérer les détails d'un projet, y compris ses membres et leurs compétences.
 **Ajouté le 01/05/25 pour le composant projet**
 =====================================
 */
@@ -209,7 +202,7 @@ app.get('/api/projets/:id', (req, res) => {
 /* 
 =====================================
 👥 Route DELETE : /api/projets/:id/membres/:idPersonnel
-Cette route permet au créateur de supprimer un membre d’un projet.
+Cette route permet au créateur de supprimer un membre d'un projet.
 Elle vérifie d'abord si l'utilisateur est le créateur du projet.
 **Ajouté le 01/05/25 pour le composant projet**
 =====================================
@@ -266,4 +259,90 @@ Le serveur écoute les requêtes entrantes sur le port spécifié.
 */
 app.listen(port, () => {
   console.log(`✅ Serveur en cours d'exécution sur : http://localhost:${port}`);
+});
+
+// 👥 Route GET : Récupérer tous les personnels avec leurs compétences
+app.get('/api/personnel', (req, res) => {
+  const query = `
+    SELECT p.Identifiant, p.Nom, p.Prenom, p.User as email,
+           GROUP_CONCAT(c.Competence) as competences
+    FROM Personnel p
+    LEFT JOIN CompetencesPersonnel cp ON p.Identifiant = cp.IdPersonnel
+    LEFT JOIN Competences c ON cp.IdCompetence = c.IdentifiantC
+    GROUP BY p.Identifiant
+  `;
+  
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération du personnel:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    
+    const personnel = results.map(p => ({
+      id: p.Identifiant,
+      nom: p.Nom,
+      prenom: p.Prenom,
+      email: p.email,
+      competences: p.competences ? p.competences.split(',') : []
+    }));
+    
+    res.json(personnel);
+  });
+});
+
+// 👥 Route POST : Ajouter un nouveau personnel
+app.post('/api/personnel', (req, res) => {
+  const { nom, prenom, email, competences } = req.body;
+  
+  db.beginTransaction(err => {
+    if (err) {
+      console.error('❌ Erreur de transaction:', err);
+      return res.status(500).json({ error: err.message });
+    }
+
+    // Insérer le personnel
+    const insertPersonnel = 'INSERT INTO Personnel (Nom, Prenom, User) VALUES (?, ?, ?)';
+    db.query(insertPersonnel, [nom, prenom, email], (err, result) => {
+      if (err) {
+        return db.rollback(() => {
+          console.error('❌ Erreur lors de l\'insertion du personnel:', err);
+          res.status(500).json({ error: err.message });
+        });
+      }
+
+      const personnelId = result.insertId;
+
+      // Insérer les compétences
+      if (competences && competences.length > 0) {
+        const insertCompetences = 'INSERT INTO CompetencesPersonnel (IdPersonnel, IdCompetence) VALUES ?';
+        const competenceValues = competences.map(c => [personnelId, c]);
+        
+        db.query(insertCompetences, [competenceValues], (err) => {
+          if (err) {
+            return db.rollback(() => {
+              console.error('❌ Erreur lors de l\'insertion des compétences:', err);
+              res.status(500).json({ error: err.message });
+            });
+          }
+
+          db.commit(err => {
+            if (err) {
+              return db.rollback(() => {
+                res.status(500).json({ error: err.message });
+              });
+            }
+            console.log('✅ Nouveau personnel ajouté avec succès');
+            res.status(201).json({
+              id: personnelId,
+              nom,
+              prenom,
+              email,
+              competences
+            });
+          });
+        });
+      }
+    });
+  });
 });
