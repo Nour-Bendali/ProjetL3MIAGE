@@ -1,17 +1,35 @@
-<header>
-  <h1 class="text-center">RecruitMIAGE - Dashboard Projets</h1>
-</header>
-<main class="container mt-4">
-  <h2>Mes Projets</h2>
-  <div class="row">
-    <div class="col-md-4" *ngFor="let project of projects">
-      <div class="card mb-3">
-        <div class="card-body">
-          <h5 class="card-title">{{ project.name }}</h5>
-          <p class="card-text">{{ project.description }}</p>
-        </div>
-      </div>
+<!-- src/app/dashboard-projects/dashboard-projects.component.html -->
+
+<div>
+  <!-- 📋 Formulaire pour créer un nouveau projet -->
+  <h2>Créer un nouveau projet</h2>
+  <form (ngSubmit)="createProjet()">
+    <label>Nom du projet :</label>
+    <input [(ngModel)]="nouveauProjet.nomProjet" name="nomProjet" required>
+    <br>
+    <label>Description :</label>
+    <textarea [(ngModel)]="nouveauProjet.description" name="description"></textarea>
+    <br>
+    <button type="submit" [disabled]="!nouveauProjet.nomProjet">Créer</button>
+  </form>
+
+  <!-- 📋 Affichage des détails du projet -->
+  <div *ngIf="projet">
+    <h3>{{ projet.projet.NomProjet }}</h3>
+    <p>{{ projet.projet.Description }}</p>
+    <h4>Membres du projet :</h4>
+    <ul>
+      <li *ngFor="let membre of projet.membres">
+        {{ membre.Prenom }} {{ membre.Nom }} - Compétences : {{ membre.Competence || 'Aucune' }}
+        <!-- 🗑️ Bouton pour supprimer un membre -->
+        <button (click)="removeMembre(membre.Identifiant)">Supprimer</button>
+      </li>
+    </ul>
+    <!-- 👥 Formulaire pour ajouter un membre -->
+    <div>
+      <label>Ajouter un membre (ID) :</label>
+      <input type="number" [(ngModel)]="idPersonnelToAdd" name="idPersonnel">
+      <button (click)="addMembre()" [disabled]="!idPersonnelToAdd">Ajouter</button>
     </div>
   </div>
-  <button routerLink="/" class="btn btn-secondary">Retour</button>
-</main>
+</div>

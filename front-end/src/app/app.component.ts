@@ -1,20 +1,22 @@
+// src/app/app.component.ts
+
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common'; // 📋 Pour les directives comme *ngIf
+import { DashboardProjectsComponent } from './dashboard-projects/dashboard-projects.component';
 
+// 🌟 Composant racine de l'application
 @Component({
-  // Sélecteur principal de l'application (utilisé dans index.html)
   selector: 'app-root',
-
-  // Composant autonome, sans dépendance à un module Angular classique
   standalone: true,
-
-  // Importation de RouterOutlet pour gérer l'affichage des routes enfants
-  imports: [RouterOutlet],
-
-  // Template principal qui agit comme point d'entrée pour le routage
-  template: `<router-outlet></router-outlet>`
+  imports: [CommonModule, DashboardProjectsComponent], // 📋 Importe DashboardProjectsComponent
+  template: `
+    <div>
+      <h1>Application RecruitMIAGE</h1>
+      <app-dashboard-projects></app-dashboard-projects>
+    </div>
+  `,
+  styles: []
 })
 export class AppComponent {
-  // Ce composant ne contient pas de logique spécifique, 
-  // il sert uniquement de conteneur aux autres vues via le système de routage.
+  title = 'recruit-miage';
 }
