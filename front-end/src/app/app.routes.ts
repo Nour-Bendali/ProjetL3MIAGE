@@ -5,8 +5,7 @@ import { LoginComponent } from './login/login.component';
 import { DashboardProjectsComponent } from './dashboard-projects/dashboard-projects.component';
 import { DashboardFoldersComponent } from './dashboard-folders/dashboard-folders.component';
 import { RegisterComponent } from './register/register.component';
-import { PersonnelComponent } from './personnel-folders/personnel.component';
-import {PersonnelTestComponent} from './personnel-test/personnel-test.component';
+import { PersonnelComponent } from './personnel/personnel.component';
 import { ProjetDetailComponent } from './projet-detail/projet-detail.component';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component'; // ✅ Import du composant
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
@@ -32,7 +31,6 @@ export const routes: Routes = [
   // Pour accéder à la liste du personnel d'un projet spécifique
   { path: 'projets/:id/personnel', component: PersonnelComponent },
 
-  { path: 'test-personnel', component: PersonnelTestComponent },
 
   { path: 'projets/:id', component: ProjetDetailComponent },
 
