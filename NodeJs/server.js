@@ -11,7 +11,7 @@ const port = 3000;
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '', // ⚠️ Spécifiez le mot de passe si nécessaire
+  password: 'MdMNB01010192@', // ⚠️ Spécifiez le mot de passe si nécessaire
   database: 'recruitmiage'
 });
 
@@ -149,6 +149,27 @@ app.post('/api/projets/:id/membres', (req, res) => {
     });
   });
 });
+
+/*
+=====================================
+📋 Route GET : /api/projets
+Cette route renvoie la liste de tous les projets.
+**À ajouter pour éviter l'erreur 404 dans Angular**
+=====================================
+*/
+app.get('/api/projets', (req, res) => {
+  const query = 'SELECT * FROM Projets';
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération des projets :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
+    res.status(200).json(results);
+  });
+});
+
 
 /* 
 =====================================
