@@ -1,0 +1,34 @@
+<!-- src/app/projet/projet.component.html -->
+
+<div class="container">
+  <h2>Détails du Projet</h2>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="projet && !errorMessage; else loading">
+    <h3>{{ projet.NomProjet }}</h3>
+    <p><strong>Description :</strong> {{ projet.Description }}</p>
+
+    <h4>Membres associés</h4>
+    <ul>
+      <li *ngFor="let membre of projet.membres">
+        {{ membre }}
+      </li>
+    </ul>
+
+    <h4>Missions du projet</h4>
+    <ul>
+      <li *ngFor="let mission of projet.missions">
+        {{ mission }}
+      </li>
+    </ul>
+
+    <button class="btn btn-primary" (click)="openProjetForm()">Gérer les membres</button>
+  </div>
+
+  <ng-template #loading>
+    <p>Chargement du projet...</p>
+  </ng-template>
+</div>

@@ -2,34 +2,50 @@
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ProjetService } from '../services/projet.service'; // à créer si besoin
+import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-projet',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './projet.component.html',
   styleUrls: ['./projet.component.css']
 })
 export class ProjetComponent implements OnInit {
-  projets: any[] = [];
+  projet: any = null;
+  projectId: number | null = null;
+  errorMessage: string | null = null; // Nouvelle propriété pour l’erreur
 
-  constructor(private projetService: ProjetService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private http: HttpClient,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    this.chargerProjets();
+    this.projectId = +this.route.snapshot.paramMap.get('id')!;
+    this.loadProjet();
   }
 
-  chargerProjets(): void {
-    this.projetService.getAllProjets().subscribe({
-      next: (data) => {
-        this.projets = data;
-        console.log("✅ Projets chargés", this.projets);
-      },
-      error: (err) => {
-        console.error("❌ Erreur lors du chargement des projets", err);
-      }
-    });
+  loadProjet(): void {
+    if (this.projectId) {
+      this.http.get(`http://localhost:3000/api/projets/${this.projectId}`).subscribe({
+        next: (data: any) => {
+          this.projet = data;
+          console.log('✅ Projet chargé', this.projet);
+        },
+        error: (error) => {
+          console.error('❌ Erreur lors du chargement du projet', error);
+          this.errorMessage = 'Impossible de charger le projet. Veuillez réessayer plus tard.';
+        }
+      });
+    }
+  }
+
+  openProjetForm(): void {
+    if (this.projectId) {
+      this.router.navigate([`/projet-form/${this.projectId}`]);
+    }
   }
 }
