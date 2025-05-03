@@ -11,7 +11,7 @@ const port = 3000;
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: 'MdMNB01010192@', // ⚠️ Spécifiez le mot de passe si nécessaire
+  password: '', // ⚠️ Spécifiez le mot de passe si nécessaire
   database: 'recruitmiage'
 });
 

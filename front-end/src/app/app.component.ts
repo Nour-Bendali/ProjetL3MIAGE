@@ -1,18 +1,14 @@
-// src/app/app.component.ts
-
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common'; // 📋 Pour les directives comme *ngIf
-import { DashboardProjectsComponent } from './dashboard-projects/dashboard-projects.component';
+import { RouterModule } from '@angular/router';
 
-// 🌟 Composant racine de l'application
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, DashboardProjectsComponent], // 📋 Importe DashboardProjectsComponent
+  imports: [RouterModule],
   template: `
     <div>
       <h1>Application RecruitMIAGE</h1>
-      <app-dashboard-projects></app-dashboard-projects>
+      <router-outlet></router-outlet>
     </div>
   `,
   styles: []
