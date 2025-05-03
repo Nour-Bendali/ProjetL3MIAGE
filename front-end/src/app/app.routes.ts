@@ -1,3 +1,5 @@
+// src/app/app.routes.ts
+
 import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { DashboardProjectsComponent } from './dashboard-projects/dashboard-projects.component';
@@ -31,5 +33,6 @@ export const routes: Routes = [
 
   { path: 'reset-password', component: ResetPasswordComponent },
 
-
+  // 📋 Route catch-all pour rediriger vers login si chemin inconnu
+  { path: '**', redirectTo: 'login' }
 ];

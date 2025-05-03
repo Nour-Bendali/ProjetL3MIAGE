@@ -1,4 +1,5 @@
-<!-- En-tête de la page de connexion -->
+<!-- src/app/login/login.component.html -->
+
 <header>
   <h1 class="text-center">RecruitMIAGE</h1>
 </header>
@@ -7,6 +8,11 @@
   <!-- Formulaire de connexion -->
   <form (ngSubmit)="onSubmit()" novalidate class="mt-4">
     
+    <!-- Message d'erreur -->
+    <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+      {{ errorMessage }}
+    </div>
+
     <!-- Champ pour l'email de l'utilisateur -->
     <div class="mb-3">
       <label for="email" class="form-label">Email :</label>
