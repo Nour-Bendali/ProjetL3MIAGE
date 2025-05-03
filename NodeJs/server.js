@@ -139,7 +139,7 @@ app.post('/api/projets/:id/membres', (req, res) => {
     db.execute(addMemberQuery, [id, idPersonnel], (err, result) => {
       if (err) {
         // ❌ Gestion des erreurs SQL
-        console.error('❌ Erreur lors de l\'ajout du membre :', err);
+        console.error('❌ Erreur lors de l\`ajout du membre :', err);
         return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
       }
 
@@ -250,6 +250,92 @@ app.delete('/api/projets/:id/membres/:idPersonnel', (req, res) => {
     });
   });
 });
+
+/*
+=====================================
+🔍 Route POST : /api/verify-user
+Cette route permet de vérifier si un utilisateur existe dans la base de données
+à partir de son nom d'utilisateur (User) fourni depuis Angular.
+=====================================
+*/
+app.post('/api/verify-user', (req, res) => {
+  const { username } = req.body;
+
+  // ✅ Vérification du champ requis
+  if (!username) {
+    return res.status(400).json({
+      success: false,
+      error: 'Nom d\'utilisateur requis.'
+    });
+  }
+
+  // 🔎 Requête SQL pour vérifier si le nom d'utilisateur existe
+  const query = 'SELECT * FROM personnel WHERE User = ?';
+
+  db.execute(query, [username], (err, results) => {
+    if (err) {
+      console.error('❌ Erreur MySQL :', err);
+      return res.status(500).json({
+        success: false,
+        error: 'Erreur serveur.'
+      });
+    }
+
+    if (results.length > 0) {
+      console.log(`✅ Utilisateur trouvé : ${username}`);
+      res.status(200).json({ success: true, message: 'Utilisateur trouvé' });
+    } else {
+      console.log(`❌ Utilisateur introuvable : ${username}`);
+      res.status(404).json({ success: false, error: 'Utilisateur non trouvé' });
+    }
+  });
+});
+
+
+/*
+=====================================
+🔐 Route POST : /api/reset-password
+Cette route permet de mettre à jour le mot de passe d’un utilisateur
+après qu’il a été vérifié via la procédure "mot de passe oublié".
+=====================================
+*/
+app.post('/api/reset-password', (req, res) => {
+  const { username, newPassword } = req.body;
+
+  // ✅ Vérification des champs requis
+  if (!username || !newPassword) {
+    return res.status(400).json({
+      success: false,
+      error: 'Nom d’utilisateur et nouveau mot de passe requis.'
+    });
+  }
+
+  // 🔧 Requête SQL de mise à jour du mot de passe
+  const query = 'UPDATE personnel SET Password = ? WHERE User = ?';
+
+  db.execute(query, [newPassword, username], (err, results) => {
+    if (err) {
+      console.error('❌ Erreur MySQL :', err);
+      return res.status(500).json({
+        success: false,
+        error: 'Erreur serveur.'
+      });
+    }
+
+    if (results.affectedRows === 0) {
+      console.log(`❌ Utilisateur non trouvé : ${username}`);
+      return res.status(404).json({
+        success: false,
+        error: 'Utilisateur non trouvé.'
+      });
+    }
+
+    console.log(`✅ Mot de passe mis à jour pour : ${username}`);
+    res.status(200).json({ success: true, message: 'Mot de passe mis à jour.' });
+  });
+});
+
+
 
 /*
 =====================================

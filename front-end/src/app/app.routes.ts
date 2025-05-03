@@ -1,3 +1,5 @@
+// app.routes.ts
+
 import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { DashboardProjectsComponent } from './dashboard-projects/dashboard-projects.component';
@@ -6,6 +8,10 @@ import { RegisterComponent } from './register/register.component';
 import { PersonnelComponent } from './personnel-folders/personnel.component';
 import {PersonnelTestComponent} from './personnel-test/personnel-test.component';
 import { ProjetDetailComponent } from './projet-detail/projet-detail.component';
+import { ForgotPasswordComponent } from './forgot-password/forgot-password.component'; // ✅ Import du composant
+import { ResetPasswordComponent } from './reset-password/reset-password.component';
+
+
 
 // Définition des routes de l'application
 export const routes: Routes = [
@@ -30,4 +36,8 @@ export const routes: Routes = [
 
   { path: 'projets/:id', component: ProjetDetailComponent },
 
+  // ✅ Route pour la page "Mot de passe oublié"
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+
+  { path: 'reset-password', component: ResetPasswordComponent }
 ];
