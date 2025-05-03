@@ -11,7 +11,7 @@ const port = 3000;
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '@Ismaeliyo10', // ⚠️ Spécifiez le mot de passe si nécessaire
+  password: 'MdMNB01010192@', // ⚠️ Spécifiez le mot de passe si nécessaire
   database: 'recruitmiage'
 });
 
@@ -139,7 +139,7 @@ app.post('/api/projets/:id/membres', (req, res) => {
     db.execute(addMemberQuery, [id, idPersonnel], (err, result) => {
       if (err) {
         // ❌ Gestion des erreurs SQL
-        console.error('❌ Erreur lors de l'ajout du membre :', err);
+        console.error('❌ Erreur lors de l\'ajout du membre :', err);
         return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
       }
 

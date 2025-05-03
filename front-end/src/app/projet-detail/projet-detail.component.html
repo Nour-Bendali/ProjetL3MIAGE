@@ -1,0 +1,19 @@
+<div *ngIf="projet">
+    <h3>{{ projet.projet.NomProjet }}</h3>
+    <p>{{ projet.projet.Description }}</p>
+  
+    <h4>Membres du projet :</h4>
+    <ul>
+      <li *ngFor="let membre of projet.membres">
+        {{ membre.Prenom }} {{ membre.Nom }} -
+        Compétences : {{ membre.Competence || 'Aucune' }}
+        <button (click)="removeMembre(membre.Identifiant)">Supprimer</button>
+      </li>
+    </ul>
+  
+    <!-- 👥 Formulaire pour ajouter un membre -->
+    <div>
+      <label>Ajouter un membre (ID) :</label>
+      <input type="number" [(ngModel)]="idPersonnelToAdd" name="idPersonnel">
+      <button (click)="addMembre()" [disabled]="!id
+  

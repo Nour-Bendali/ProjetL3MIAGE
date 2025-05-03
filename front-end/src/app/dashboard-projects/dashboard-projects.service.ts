@@ -24,6 +24,12 @@ export class DashboardProjectsService {
     return this.http.post(`${this.apiUrl}/${idProjet}/membres`, { idPersonnel, createurId });
   }
 
+
+  //Recuperer les details de tous les projets
+  getAllProjet(): Observable<any> {
+    return this.http.get(this.apiUrl);
+  }
+
   // 📋 Récupérer les détails d’un projet
   getProjet(id: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/${id}`);

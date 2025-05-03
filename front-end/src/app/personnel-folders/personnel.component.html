@@ -1,0 +1,74 @@
+<div class="container mt-4">
+  <h2 class="mb-4">Liste du Personnel</h2>
+
+  <!-- Bouton pour ouvrir le modal -->
+  <button class="btn btn-primary mb-3" (click)="ouvrirModalPersonnel()">
+    <i class="fas fa-plus"></i> Ajouter des membres au projet
+  </button>
+
+  <!-- Modal de sélection du personnel -->
+  <div class="modal fade show" *ngIf="modalOuvert" style="display: block; background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title">Sélectionner des membres</h5>
+          <button type="button" class="close" (click)="fermerModal()">
+            <span>&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="list-group">
+            <div *ngFor="let personne of personnel" class="list-group-item">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="mb-0">{{ personne.nom }} {{ personne.prenom }}</h6>
+                  <small class="text-muted">{{ personne.email }}</small>
+                  <div class="mt-2">
+                    <span *ngFor="let comp of personne.competences" class="badge badge-info mr-1">
+                      {{ comp }}
+                    </span>
+                  </div>
+                </div>
+                <button class="btn btn-sm btn-success" (click)="ajouterAuProjet(personne)">
+                  Ajouter
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="fermerModal()">Fermer</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste complète du personnel -->
+  <div class="personnel-list row">
+    <div class="col-md-6 mb-4" *ngFor="let personne of personnel">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">{{ personne.nom }} {{ personne.prenom }}</h5>
+          <p class="card-text"><i class="fas fa-envelope"></i> {{ personne.email }}</p>
+          <div>
+            <strong>Compétences :</strong>
+            <div class="mt-1">
+              <span *ngFor="let competence of personne.competences" class="badge badge-secondary mr-1">
+                {{ competence }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer text-right">
+          <button class="btn btn-danger btn-sm" (click)="supprimerPersonne(personne.id)">
+            Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
