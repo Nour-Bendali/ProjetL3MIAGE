@@ -6,7 +6,9 @@ const cors = require('cors');
 
 const app = express();
 
-// Middleware
+
+// 🛡️ Middleware pour activer CORS (Cross-Origin Resource Sharing)
+// et pour permettre la réception de données JSON dans les requêtes
 app.use(cors());
 app.use(express.json());
 
@@ -209,4 +211,59 @@ app.delete('/api/projets/:id/personnel/:idPersonnel', (req, res) => {
 const port = 3000;
 app.listen(port, () => {
   console.log(`✅ Serveur en cours d'exécution sur : http://localhost:${port}`);
+});
+/*
+=====================================
+🚀 Route POST : /api/missions
+Cette route permet de créer une nouvelle mission et l'associer à un projet.
+=====================================
+*/
+app.post('/api/missions', (req, res) => {
+  const { idProjet, titre, description } = req.body;
+
+  if (!idProjet || !titre) {
+    return res.status(400).json({
+      success: false,
+      error: 'Id du projet et titre de la mission sont obligatoires.'
+    });
+  }
+
+  const query = `
+    INSERT INTO Missions (IdProjet, Titre, Description)
+    VALUES (?, ?, ?)
+  `;
+
+  db.execute(query, [idProjet, titre, description], (err, result) => {
+    if (err) {
+      console.error('❌ Erreur lors de la création de la mission :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
+    console.log(`✅ Mission "${titre}" créée pour le projet ${idProjet}`);
+    res.status(201).json({ success: true, id: result.insertId });
+  });
+});
+
+/*
+=====================================
+📋 Route GET : /api/missions
+Cette route retourne toutes les missions enregistrées dans la base de données.
+=====================================
+*/
+app.get('/api/missions', (req, res) => {
+  const query = `
+    SELECT m.*, p.NomProjet
+    FROM Missions m
+    JOIN Projets p ON m.IdProjet = p.IdProjet
+    ORDER BY m.DateCreation DESC
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération des missions :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
+    res.json(results);
+  });
 });

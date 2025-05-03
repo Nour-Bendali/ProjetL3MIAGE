@@ -1,49 +1,43 @@
-// src/app/mission-form/mission-form.component.ts
-
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MissionService } from '../services/mission.service';
+import { ProjetService } from '../services/projet.service';
 
 @Component({
   selector: 'app-mission-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './mission-form.component.html',
-  styleUrls: ['./mission-form.component.css']
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './mission-form.component.html'
 })
 export class MissionFormComponent implements OnInit {
-  @Input() mission: any = {
-    titre: '',
-    description: '',
-    dateDebut: '',
-    dateFin: ''
-  };
+  missionForm!: FormGroup;
+  projets: any[] = [];
 
-  @Input() isEditMode = false; // 🔁 Pour gérer si c’est un ajout ou une édition
-  @Output() onSave = new EventEmitter<any>(); // 📤 Émet l’objet mission
+  constructor(
+    private fb: FormBuilder,
+    private missionService: MissionService,
+    private projetService: ProjetService
+  ) {}
 
   ngOnInit(): void {
-    // Si des données sont déjà fournies, elles seront affichées dans le formulaire
+    this.missionForm = this.fb.group({
+      titre: ['', Validators.required],
+      description: [''],
+      idProjet: ['', Validators.required]
+    });
+
+    this.projetService.getAllProjets().subscribe((data: any[]) => {
+      this.projets = data;
+    });
   }
 
-  save(): void {
-    if (!this.mission.titre || !this.mission.dateDebut || !this.mission.dateFin) {
-      alert('Veuillez remplir les champs requis');
-      return;
-    }
-
-    this.onSave.emit(this.mission);
-    this.resetForm(); // 🔄 Optionnel si tu veux nettoyer après
-  }
-
-  resetForm(): void {
-    if (!this.isEditMode) {
-      this.mission = {
-        titre: '',
-        description: '',
-        dateDebut: '',
-        dateFin: ''
-      };
+  onSubmit(): void {
+    if (this.missionForm.valid) {
+      this.missionService.createMission(this.missionForm.value).subscribe({
+        next: () => alert('Mission créée avec succès'),
+        error: () => alert('Erreur lors de la création de la mission')
+      });
     }
   }
 }

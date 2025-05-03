@@ -1,0 +1,17 @@
+<form [formGroup]="missionForm" (ngSubmit)="onSubmit()">
+    <label for="titre">Titre:</label>
+    <input id="titre" formControlName="titre" type="text" />
+  
+    <label for="description">Description:</label>
+    <textarea id="description" formControlName="description"></textarea>
+  
+    <label for="idProjet">Projet:</label>
+    <select id="idProjet" formControlName="idProjet">
+      <option *ngFor="let projet of projets" [value]="projet.IdProjet">
+        {{ projet.NomProjet }}
+      </option>
+    </select>
+  
+    <button type="submit" [disabled]="missionForm.invalid">Créer Mission</button>
+  </form>
+  

@@ -10,6 +10,7 @@ import { ForgotPasswordComponent } from './forgot-password/forgot-password.compo
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
 import { ProjetComponent } from './projet/projet.component';
 import { ProjetFormComponent } from './projet-form/projet-form.component';
+import { MissionFormComponent } from './mission-form/mission-form.component';
 
 export const routes: Routes = [
   // ✅ Redirige la racine vers '/login' (point d'entrée par défaut)
@@ -30,6 +31,7 @@ export const routes: Routes = [
   { path: 'projets/:id/personnel', component: PersonnelComponent }, // Gestion du personnel pour un projet
 
 
+  {path: 'mission-form', component: MissionFormComponent},
   // 📋 Route catch-all pour rediriger vers login si chemin inconnu
   { path: '**', redirectTo: 'login' }
 ];
