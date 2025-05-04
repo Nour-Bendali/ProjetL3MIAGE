@@ -33,11 +33,12 @@ export class MissionFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.missionForm.valid) {
-      this.missionService.createMission(this.missionForm.value).subscribe({
-        next: () => alert('Mission créée avec succès'),
-        error: () => alert('Erreur lors de la création de la mission')
-      });
-    }
+    this.missionService.createMission(this.missionForm.value).subscribe({
+      next: () => alert('Mission créée avec succès'),
+      error: (err) => {
+        console.error('Erreur mission:', err);
+        alert('Erreur lors de la création de la mission');
+      }
+    });
   }
 }

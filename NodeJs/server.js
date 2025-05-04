@@ -16,7 +16,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '@Ismaeliyo10', // Mot de passe MySQL
+  password: '', // Mot de passe MySQL
   database: 'recruitmiage'
 });
 
@@ -175,6 +175,29 @@ app.get('/api/projets/:id', (req, res) => {
   });
 });
 
+// 📋 Route POST : /api/projets
+// Crée un nouveau projet dans la base de données
+app.post('/api/projets', (req, res) => {
+  const { nomProjet, description, createurId } = req.body;
+
+  if (!nomProjet || !description || !createurId) {
+    return res.status(400).json({ success: false, error: 'Champs requis manquants.' });
+  }
+
+  const query = 'INSERT INTO Projets (NomProjet, Description, CreateurId, DateCreation) VALUES (?, ?, ?, CURDATE())';
+
+  db.execute(query, [nomProjet, description, createurId], (err, result) => {
+    if (err) {
+      console.error('❌ Erreur lors de la création du projet :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
+    console.log('✅ Nouveau projet créé :', nomProjet);
+    res.status(201).json({ success: true, id: result.insertId });
+  });
+});
+
+
 // 📋 Route POST : /api/projets/:id/personnel
 // Associe un membre à un projet (ajoute une entrée dans ProjetsPersonnel).
 app.post('/api/projets/:id/personnel', (req, res) => {
@@ -192,6 +215,22 @@ app.post('/api/projets/:id/personnel', (req, res) => {
     res.status(201).json({ success: true });
   });
 });
+
+// 📋 Route GET : /api/projets
+// Récupère la liste de tous les projets pour le select du formulaire de mission
+app.get('/api/projets', (req, res) => {
+  const query = 'SELECT IdProjet, NomProjet, Description FROM Projets';
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération des projets :', err);
+      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+    }
+
+    res.status(200).json(results);
+  });
+});
+
 
 // 📋 Route DELETE : /api/projets/:id/personnel/:idPersonnel
 // Supprime un membre d’un projet (supprime une entrée de ProjetsPersonnel).
