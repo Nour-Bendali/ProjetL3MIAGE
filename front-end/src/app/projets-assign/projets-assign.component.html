@@ -1,0 +1,21 @@
+<p>projets-assign works!</p>
+<h2>Assigner un membre à un projet</h2>
+
+<!-- Choix du projet -->
+<label for="projet">Projet :</label>
+<select id="projet" [(ngModel)]="selectedProjetId">
+  <option *ngFor="let projet of projets" [value]="projet.IdProjet">
+    {{ projet.NomProjet }}
+  </option>
+</select>
+
+<!-- Choix du personnel -->
+<label for="personnel">Personnel :</label>
+<select id="personnel" [(ngModel)]="selectedPersonnelId">
+  <option *ngFor="let membre of personnel" [value]="membre.Identifiant">
+    {{ membre.Prenom }} {{ membre.Nom }}
+  </option>
+</select>
+
+<!-- Bouton pour assigner -->
+<button (click)="assignPersonnel()">Assigner</button>

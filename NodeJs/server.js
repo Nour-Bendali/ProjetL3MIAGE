@@ -206,7 +206,7 @@ app.post('/api/projets/:id/personnel', (req, res) => {
   if (!idPersonnel) {
     return res.status(400).json({ success: false, error: 'idPersonnel est requis.' });
   }
-  const query = 'INSERT INTO ProjetsPersonnel (IdProjet, IdentifiantPersonnel) VALUES (?, ?)';
+  const query = 'INSERT INTO ProjetsPersonnel (IdProjet, IdPersonnel) VALUES (?, ?)';
   db.execute(query, [id, idPersonnel], (err) => {
     if (err) {
       console.error('❌ Erreur lors de l’ajout du membre au projet :', err);
@@ -216,6 +216,7 @@ app.post('/api/projets/:id/personnel', (req, res) => {
   });
 });
 
+
 // 📋 Route GET : /api/projets
 // Récupère la liste de tous les projets pour le select du formulaire de mission
 app.get('/api/projets', (req, res) => {
@@ -224,12 +225,22 @@ app.get('/api/projets', (req, res) => {
   db.query(query, (err, results) => {
     if (err) {
       console.error('❌ Erreur lors de la récupération des projets :', err);
-      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+      return res.status(500).json({
+        success: false,
+        error: 'Erreur interne du serveur lors de la récupération des projets.'
+      });
     }
 
-    res.status(200).json(results);
+    if (results.length === 0) {
+      console.warn('⚠️ Aucun projet trouvé dans la base de données.');
+      return res.status(200).json({ success: true, projets: [] });
+    }
+
+    console.log(`✅ ${results.length} projets récupérés avec succès.`);
+    res.status(200).json({ success: true, projets: results });
   });
 });
+
 
 
 // 📋 Route DELETE : /api/projets/:id/personnel/:idPersonnel

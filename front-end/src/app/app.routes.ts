@@ -9,6 +9,7 @@ import { ForgotPasswordComponent } from './forgot-password/forgot-password.compo
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
 import { ProjetComponent } from './projet/projet.component';
 import { ProjetsFormComponent } from './projets-form/projets-form.component';
+import { ProjetsAssignComponent } from './projets-assign/projets-assign.component';
 import { MissionFormComponent } from './mission-form/mission-form.component';
 
 export const routes: Routes = [
@@ -19,6 +20,7 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'projets-form', component: ProjetsFormComponent },
+  { path: 'projets-assign', component: ProjetsAssignComponent },
   { path: 'dashboard-folders', component: DashboardFoldersComponent },
   { path: 'personnel', component: PersonnelComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
