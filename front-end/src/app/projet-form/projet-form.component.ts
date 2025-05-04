@@ -1,9 +1,10 @@
 // src/app/projet-form/projet-form.component.ts
 
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ProjetService } from '../services/projet.service'; // Assure-toi qu’il contient bien un createProjet()
+import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-projet-form',
@@ -12,29 +13,69 @@ import { ProjetService } from '../services/projet.service'; // Assure-toi qu’i
   templateUrl: './projet-form.component.html',
   styleUrls: ['./projet-form.component.css']
 })
-export class ProjetFormComponent {
-  nouveauProjet = {
-    nomProjet: '',
-    description: '',
-    createurId: 1 // À remplacer par l'ID réel de l'utilisateur connecté
-  };
+export class ProjetFormComponent implements OnInit {
+  projectId: number | null = null;
+  personnelList: any[] = [];
+  selectedPersonnelId: number | null = null;
+  message: string = '';
 
-  constructor(private projetService: ProjetService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private http: HttpClient,
+    private router: Router
+  ) {}
 
-  createProjet(): void {
-    if (!this.nouveauProjet.nomProjet || !this.nouveauProjet.description) {
-      console.warn("⚠️ Champs requis manquants");
-      return;
-    }
+  ngOnInit(): void {
+    this.projectId = +this.route.snapshot.paramMap.get('id')!;
+    this.loadPersonnel();
+  }
 
-    this.projetService.createProjet(this.nouveauProjet).subscribe({
-      next: (res) => {
-        console.log("✅ Projet créé :", res);
-        // Tu peux rediriger ou afficher une confirmation ici
+  loadPersonnel(): void {
+    this.http.get('http://localhost:3000/api/personnel').subscribe({
+      next: (data: any) => {
+        this.personnelList = data;
+        console.log('✅ Liste des membres chargée', this.personnelList);
       },
-      error: (err) => {
-        console.error("❌ Erreur lors de la création du projet", err);
+      error: (error) => {
+        console.error('❌ Erreur lors du chargement des membres', error);
       }
     });
+  }
+
+  addMember(): void {
+    if (this.selectedPersonnelId && this.projectId) {
+      this.http.post(`http://localhost:3000/api/projets/${this.projectId}/personnel`, { idPersonnel: this.selectedPersonnelId }).subscribe({
+        next: () => {
+          this.message = 'Membre ajouté avec succès.';
+          this.selectedPersonnelId = null;
+          this.goBack(); // Retour à la page projet après ajout
+        },
+        error: (error) => {
+          console.error('❌ Erreur lors de l’ajout du membre', error);
+          this.message = 'Erreur lors de l’ajout.';
+        }
+      });
+    }
+  }
+
+  deleteMember(idPersonnel: number): void {
+    if (this.projectId && confirm('Êtes-vous sûr de vouloir supprimer ce membre ?')) {
+      this.http.delete(`http://localhost:3000/api/projets/${this.projectId}/personnel/${idPersonnel}`).subscribe({
+        next: () => {
+          this.message = 'Membre supprimé avec succès.';
+          this.goBack(); // Retour à la page projet après suppression
+        },
+        error: (error) => {
+          console.error('❌ Erreur lors de la suppression du membre', error);
+          this.message = 'Erreur lors de la suppression.';
+        }
+      });
+    }
+  }
+
+  goBack(): void {
+    if (this.projectId) {
+      this.router.navigate([`/projet/${this.projectId}`]);
+    }
   }
 }

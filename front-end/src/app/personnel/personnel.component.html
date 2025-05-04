@@ -1,0 +1,147 @@
+<!-- src/app/personnel/personnel.component.html -->
+
+<div class="container">
+    <h2>Gestion du Personnel</h2>
+  
+    <!-- Message d’erreur ou de succès -->
+    <div *ngIf="message" class="alert" [ngClass]="{'alert-success': message.includes('succès'), 'alert-danger': !message.includes('succès')}">
+      {{ message }}
+    </div>
+  
+    <!-- Champ de recherche -->
+    <div class="mb-3">
+      <label for="search" class="form-label">Rechercher :</label>
+      <input 
+        type="text" 
+        id="search" 
+        class="form-control" 
+        placeholder="Rechercher par nom ou email" 
+        [(ngModel)]="searchQuery" 
+        (input)="filterPersonnel()">
+    </div>
+  
+    <!-- Formulaire pour ajouter un membre -->
+    <div class="mb-4">
+      <h3>Ajouter un membre</h3>
+      <form (ngSubmit)="addPersonnel()">
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Prénom" 
+              [(ngModel)]="newPersonnel.prenom" 
+              name="prenom" 
+              required>
+          </div>
+          <div class="col-md-3 mb-3">
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Nom" 
+              [(ngModel)]="newPersonnel.nom" 
+              name="nom" 
+              required>
+          </div>
+          <div class="col-md-3 mb-3">
+            <input 
+              type="email" 
+              class="form-control" 
+              placeholder="Email" 
+              [(ngModel)]="newPersonnel.email" 
+              name="email" 
+              required>
+          </div>
+          <div class="col-md-3 mb-3">
+            <input 
+              type="password" 
+              class="form-control" 
+              placeholder="Mot de passe" 
+              [(ngModel)]="newPersonnel.password" 
+              name="password" 
+              required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+      </form>
+    </div>
+  
+    <!-- Liste des membres -->
+    <div>
+      <h3>Liste des membres</h3>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Prénom</th>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let person of filteredPersonnel">
+            <td>{{ person.Identifiant }}</td>
+            <td>
+              <span *ngIf="!editPersonnel || editPersonnel.Identifiant !== person.Identifiant">
+                {{ person.Prenom }}
+              </span>
+              <input 
+                *ngIf="editPersonnel && editPersonnel.Identifiant === person.Identifiant"
+                type="text" 
+                class="form-control" 
+                [(ngModel)]="editPersonnel.Prenom" 
+                name="editPrenom">
+            </td>
+            <td>
+              <span *ngIf="!editPersonnel || editPersonnel.Identifiant !== person.Identifiant">
+                {{ person.Nom }}
+              </span>
+              <input 
+                *ngIf="editPersonnel && editPersonnel.Identifiant === person.Identifiant"
+                type="text" 
+                class="form-control" 
+                [(ngModel)]="editPersonnel.Nom" 
+                name="editNom">
+            </td>
+            <td>
+              <span *ngIf="!editPersonnel || editPersonnel.Identifiant !== person.Identifiant">
+                {{ person.User }}
+              </span>
+              <input 
+                *ngIf="editPersonnel && editPersonnel.Identifiant === person.Identifiant"
+                type="email" 
+                class="form-control" 
+                [(ngModel)]="editPersonnel.User" 
+                name="editEmail">
+            </td>
+            <td>
+              <button 
+                *ngIf="!editPersonnel || editPersonnel.Identifiant !== person.Identifiant"
+                class="btn btn-warning btn-sm me-2" 
+                (click)="startEdit(person)">
+                Modifier
+              </button>
+              <button 
+                *ngIf="editPersonnel && editPersonnel.Identifiant === person.Identifiant"
+                class="btn btn-success btn-sm me-2" 
+                (click)="saveEdit()">
+                Enregistrer
+              </button>
+              <button 
+                *ngIf="editPersonnel && editPersonnel.Identifiant === person.Identifiant"
+                class="btn btn-secondary btn-sm me-2" 
+                (click)="cancelEdit()">
+                Annuler
+              </button>
+              <button 
+                class="btn btn-danger btn-sm" 
+                (click)="deletePersonnel(person.Identifiant)">
+                Supprimer
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>

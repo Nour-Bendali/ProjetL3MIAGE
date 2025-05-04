@@ -1,0 +1,21 @@
+/* src/app/personnel/personnel.component.css */
+
+.container {
+    padding: 20px;
+  }
+  
+  .table {
+    margin-top: 20px;
+  }
+  
+  .alert {
+    margin-bottom: 20px;
+  }
+  
+  .form-control {
+    max-width: 100%;
+  }
+  
+  .btn-sm {
+    padding: 5px 10px;
+  }
