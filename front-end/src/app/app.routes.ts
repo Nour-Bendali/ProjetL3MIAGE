@@ -11,6 +11,8 @@ import { ProjetComponent } from './projet/projet.component';
 import { ProjetsFormComponent } from './projets-form/projets-form.component';
 import { ProjetsAssignComponent } from './projets-assign/projets-assign.component';
 import { MissionFormComponent } from './mission-form/mission-form.component';
+import { MissionAssignComponent } from './mission-assign/mission-assign.component';
+
 
 export const routes: Routes = [
   // ✅ Redirige la racine vers '/login' (point d'entrée par défaut)
@@ -33,6 +35,8 @@ export const routes: Routes = [
 
 
   {path: 'mission-form', component: MissionFormComponent},
+  { path: 'mission-assign', component: MissionAssignComponent },
+
   // 📋 Route catch-all pour rediriger vers login si chemin inconnu
   { path: '**', redirectTo: 'login' }
 ];
