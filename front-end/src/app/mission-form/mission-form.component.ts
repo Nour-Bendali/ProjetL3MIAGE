@@ -27,8 +27,14 @@ export class MissionFormComponent implements OnInit {
       idProjet: ['', Validators.required]
     });
 
-    this.projetService.getAllProjets().subscribe((data: any[]) => {
-      this.projets = data;
+    this.projetService.getAllProjets().subscribe({
+      next: (data) => {
+        this.projets = data.projets ?? []; 
+      },
+      error: (err) => {
+        console.error('❌ Erreur lors du chargement des projets', err);
+        alert('Erreur lors du chargement des projets.');
+      }
     });
   }
 
