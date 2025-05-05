@@ -199,22 +199,30 @@ app.post('/api/projets', (req, res) => {
 
 
 // 📋 Route POST : /api/projets/:id/personnel
-// Associe un membre à un projet (ajoute une entrée dans ProjetsPersonnel).
 app.post('/api/projets/:id/personnel', (req, res) => {
   const { id } = req.params;
   const { idPersonnel } = req.body;
+
   if (!idPersonnel) {
     return res.status(400).json({ success: false, error: 'idPersonnel est requis.' });
   }
+
   const query = 'INSERT INTO ProjetsPersonnel (IdProjet, IdPersonnel) VALUES (?, ?)';
   db.execute(query, [id, idPersonnel], (err) => {
     if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        console.warn(`⚠️ Le membre ${idPersonnel} est déjà assigné au projet ${id}`);
+        return res.status(409).json({ success: false, error: 'Le membre est déjà assigné à ce projet.' });
+      }
+
       console.error('❌ Erreur lors de l’ajout du membre au projet :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
+
     res.status(201).json({ success: true });
   });
 });
+
 
 
 // 📋 Route GET : /api/projets

@@ -53,14 +53,14 @@ export class ProjetsAssignComponent implements OnInit {
       alert('Veuillez sélectionner un projet et un membre du personnel.');
       return;
     }
-
+  
     this.http.post(`http://localhost:3000/api/projets/${this.selectedProjetId}/personnel`, {
       idPersonnel: this.selectedPersonnelId
     }).subscribe({
       next: () => alert('✅ Membre assigné au projet avec succès.'),
       error: (err) => {
         if (err.status === 409) {
-          alert('⚠️ Ce membre est déjà assigné à ce projet.');
+          alert('⚠️ Ce membre fait déjà partie de ce projet.');
         } else {
           alert('❌ Erreur lors de l’assignation.');
           console.error(err);
