@@ -26,7 +26,7 @@ export class DashboardProjectsComponent implements OnInit {
       next: (data: any) => {
         this.projets = data;
       },
-      error: (error: any) => console.error('❌ Erreur lors du chargement des projets', error)
+      error: (error: any) => console.error('Erreur lors du chargement des projets', error)
     });
   }
 
@@ -38,7 +38,7 @@ export class DashboardProjectsComponent implements OnInit {
         this.nouveauProjet.description = '';
         this.loadProjets(); // recharge la liste
       },
-      error: (error) => console.error('❌ Erreur lors de la création', error)
+      error: (error) => console.error(' Erreur lors de la création', error)
     });
   }
 }

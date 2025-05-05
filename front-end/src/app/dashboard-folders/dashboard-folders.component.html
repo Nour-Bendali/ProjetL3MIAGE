@@ -3,15 +3,7 @@
 </header>
 <main class="container mt-4">
   <h2>Mes Dossiers</h2>
-  <div class="row">
-    <div class="col-md-4" *ngFor="let folder of folders">
-      <div class="card mb-3">
-        <div class="card-body">
-          <h5 class="card-title">{{ folder.name }}</h5>
-          <p class="card-text">{{ folder.description }}</p>
-        </div>
-      </div>
-    </div>
-  </div>
+          <h5 class="card-title">{{ folders.name }}</h5>
+          <p class="card-text">{{ folders.description }}</p>
   <button routerLink="/" class="btn btn-secondary">Retour</button>
 </main>

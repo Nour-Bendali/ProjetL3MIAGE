@@ -27,7 +27,7 @@ export const routes: Routes = [
 
   // ✅ Routes pour les projets
   { path: 'projet/:id', component: ProjetComponent }, // Vue principale d’un projet
-  { path: 'projet-form/:id', component: ProjetFormComponent }, // Formulaire pour gérer les membres
+  { path: 'projet-form', component: ProjetFormComponent }, // Formulaire pour gérer les membres
   { path: 'projets/:id/personnel', component: PersonnelComponent }, // Gestion du personnel pour un projet
 
 
