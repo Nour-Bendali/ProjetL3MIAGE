@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-dashboard-folders',
   standalone: true,
-  templateUrl: './dashboard-folders.component.html',
+  templateUrl:'./dashboard-folders.component.html',
   styleUrls: ['./dashboard-folders.component.css'],
   imports: [CommonModule, RouterLink] // CommonModule requerido por *ngFor
 })
