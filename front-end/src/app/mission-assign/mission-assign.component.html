@@ -1,0 +1,31 @@
+<div class="container mt-4">
+    <h2 class="mb-4">Assigner une mission à un membre</h2>
+  
+    <!-- Sélection de la mission -->
+    <div class="mb-3">
+      <label for="missionSelect" class="form-label">Mission :</label>
+      <select id="missionSelect" class="form-select" [(ngModel)]="selectedMissionId" (change)="onMissionChange()">
+        <option [ngValue]="null">-- Sélectionner une mission --</option>
+        <option *ngFor="let mission of missions" [ngValue]="mission.IdMission">
+          {{ mission.Titre }} (Projet : {{ mission.NomProjet }})
+        </option>
+      </select>
+    </div>
+  
+    <!-- Sélection du membre -->
+    <div class="mb-3">
+      <label for="personnelSelect" class="form-label">Membre du personnel :</label>
+      <select id="personnelSelect" class="form-select" [(ngModel)]="selectedPersonnelId">
+        <option [ngValue]="null">-- Sélectionner un membre --</option>
+        <option *ngFor="let p of personnel" [ngValue]="p.Identifiant">
+          {{ p.Prenom }} {{ p.Nom }} - {{ p.User }}
+        </option>
+      </select>
+    </div>
+  
+    <!-- Bouton d'assignation -->
+    <button class="btn btn-primary" (click)="assignMission()" [disabled]="!selectedMissionId || !selectedPersonnelId">
+      Assigner la mission
+    </button>
+  </div>
+  

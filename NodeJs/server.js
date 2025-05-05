@@ -489,23 +489,76 @@ app.get('/api/projets/:id', (req, res) => {
   });
 });
 
+// 📋 Route POST : /api/projets
+// Crée un nouveau projet dans la base de données
+app.post('/api/projets', (req, res) => {
+  const { nomProjet, description, createurId } = req.body;
+
+  if (!nomProjet || !description || !createurId) {
+    return res.status(400).json({ success: false, error: 'Champs requis manquants.' });
+  }
+
+  const query = 'INSERT INTO Projets (NomProjet, Description, CreateurId, DateCreation) VALUES (?, ?, ?, CURDATE())';
+
+  db.execute(query, [nomProjet, description, createurId], (err, result) => {
+    if (err) {
+      console.error('❌ Erreur lors de la création du projet :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
+    console.log('✅ Nouveau projet créé :', nomProjet);
+    res.status(201).json({ success: true, id: result.insertId });
+  });
+});
+
+
 // 📋 Route POST : /api/projets/:id/personnel
-// Associe un membre à un projet (ajoute une entrée dans ProjetsPersonnel).
 app.post('/api/projets/:id/personnel', (req, res) => {
   const { id } = req.params;
   const { idPersonnel } = req.body;
+
   if (!idPersonnel) {
     return res.status(400).json({ success: false, error: 'idPersonnel est requis.' });
   }
-  const query = 'INSERT INTO ProjetsPersonnel (IdProjet, IdentifiantPersonnel) VALUES (?, ?)';
+
+  const query = 'INSERT INTO ProjetsPersonnel (IdProjet, IdPersonnel) VALUES (?, ?)';
   db.execute(query, [id, idPersonnel], (err) => {
     if (err) {
       console.error('❌ Erreur lors de lajout du membre au projet :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
+
     res.status(201).json({ success: true });
   });
 });
+
+
+
+// 📋 Route GET : /api/projets
+// Récupère la liste de tous les projets pour le select du formulaire de mission
+app.get('/api/projets', (req, res) => {
+  const query = 'SELECT IdProjet, NomProjet, Description FROM Projets';
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération des projets :', err);
+      return res.status(500).json({
+        success: false,
+        error: 'Erreur interne du serveur lors de la récupération des projets.'
+      });
+    }
+
+    if (results.length === 0) {
+      console.warn('⚠️ Aucun projet trouvé dans la base de données.');
+      return res.status(200).json({ success: true, projets: [] });
+    }
+
+    console.log(`✅ ${results.length} projets récupérés avec succès.`);
+    res.status(200).json({ success: true, projets: results });
+  });
+});
+
+
 
 // 📋 Route DELETE : /api/projets/:id/personnel/:idPersonnel
 // Supprime un membre d'un projet (supprime une entrée de ProjetsPersonnel).
@@ -574,5 +627,54 @@ app.get('/api/missions', (req, res) => {
     }
 
     res.json(results);
+  });
+});
+
+
+
+// 📌 Route GET : /api/missions/:id/personnel
+app.get('/api/missions/:id/personnel', (req, res) => {
+  const { id } = req.params;
+
+  const query = `
+    SELECT per.Identifiant, per.Prenom, per.Nom, per.User
+    FROM Missions m
+    JOIN Projets p ON m.IdProjet = p.IdProjet
+    JOIN ProjetsPersonnel pp ON p.IdProjet = pp.IdProjet
+    JOIN Personnel per ON pp.IdPersonnel = per.Identifiant
+    WHERE m.IdMission = ?
+  `;
+
+  db.execute(query, [id], (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération des membres liés à la mission :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
+    res.status(200).json({ success: true, personnel: results });
+  });
+});
+
+
+// 📌 Route POST : /api/missions/:id/assign
+app.post('/api/missions/:id/assign', (req, res) => {
+  const { id } = req.params; // id de la mission
+  const { idPersonnel } = req.body;
+
+  if (!idPersonnel) {
+    return res.status(400).json({ success: false, error: 'idPersonnel est requis.' });
+  }
+
+  const query = 'INSERT INTO MissionsPersonnel (IdMission, IdPersonnel) VALUES (?, ?)';
+  db.execute(query, [id, idPersonnel], (err) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.status(409).json({ success: false, error: 'Ce membre a déjà cette mission.' });
+      }
+      console.error('❌ Erreur lors de l’affectation de la mission :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
+    res.status(201).json({ success: true, message: 'Mission assignée avec succès.' });
   });
 });

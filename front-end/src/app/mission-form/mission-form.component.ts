@@ -27,17 +27,24 @@ export class MissionFormComponent implements OnInit {
       idProjet: ['', Validators.required]
     });
 
-    this.projetService.getAllProjets().subscribe((data: any[]) => {
-      this.projets = data;
+    this.projetService.getAllProjets().subscribe({
+      next: (data) => {
+        this.projets = data.projets ?? []; 
+      },
+      error: (err) => {
+        console.error('❌ Erreur lors du chargement des projets', err);
+        alert('Erreur lors du chargement des projets.');
+      }
     });
   }
 
   onSubmit(): void {
-    if (this.missionForm.valid) {
-      this.missionService.createMission(this.missionForm.value).subscribe({
-        next: () => alert('Mission créée avec succès'),
-        error: () => alert('Erreur lors de la création de la mission')
-      });
-    }
+    this.missionService.createMission(this.missionForm.value).subscribe({
+      next: () => alert('Mission créée avec succès'),
+      error: (err) => {
+        console.error('Erreur mission:', err);
+        alert('Erreur lors de la création de la mission');
+      }
+    });
   }
 }
