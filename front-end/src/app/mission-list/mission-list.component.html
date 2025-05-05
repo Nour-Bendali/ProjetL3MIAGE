@@ -1,1 +1,19 @@
-<p>mission-list works!</p>
+<div class="container">
+  <h2>Liste des Missions</h2>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="missions.length > 0 && !errorMessage; else noMissions">
+    <div *ngFor="let mission of missions" class="mission-card">
+      <h3>{{ mission.Titre }}</h3>
+      <p><strong>Description :</strong> {{ mission.Description || 'Aucune description' }}</p>
+      <p><strong>Date de création :</strong> {{ mission.DateCreation | date:'short' }}</p>
+    </div>
+  </div>
+
+  <ng-template #noMissions>
+    <p>Aucune mission trouvée pour ce projet.</p>
+  </ng-template>
+</div>

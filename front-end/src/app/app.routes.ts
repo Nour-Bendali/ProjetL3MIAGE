@@ -26,12 +26,12 @@ export const routes: Routes = [
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'mission-list', component: MissionListComponent},
-
+  { path: 'projets/:id/missions', component: MissionListComponent },
   // ✅ Routes pour les projets
   { path: 'projet/:id', component: ProjetComponent }, // Vue principale d’un projet
   //{ path: 'projet-form/:id', component: ProjetsFormComponent }, // Formulaire pour gérer les membres
   { path: 'projets/:id/personnel', component: PersonnelComponent }, // Gestion du personnel pour un projet
-
+  
 
   {path: 'mission-form', component: MissionFormComponent},
   // 📋 Route catch-all pour rediriger vers login si chemin inconnu
