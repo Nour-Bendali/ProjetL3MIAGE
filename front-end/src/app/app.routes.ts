@@ -11,7 +11,7 @@ import { ProjetComponent } from './projet/projet.component';
 import { ProjetsFormComponent } from './projets-form/projets-form.component';
 import { ProjetsAssignComponent } from './projets-assign/projets-assign.component';
 import { MissionFormComponent } from './mission-form/mission-form.component';
-
+import { MissionListComponent } from './mission-list/mission-list.component';
 export const routes: Routes = [
   // ✅ Redirige la racine vers '/login' (point d'entrée par défaut)
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -25,6 +25,7 @@ export const routes: Routes = [
   { path: 'personnel', component: PersonnelComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'mission-list', component: MissionListComponent},
 
   // ✅ Routes pour les projets
   { path: 'projet/:id', component: ProjetComponent }, // Vue principale d’un projet

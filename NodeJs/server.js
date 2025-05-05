@@ -16,7 +16,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '', // Mot de passe MySQL
+  password: '@Ismaeliyo10', // Mot de passe MySQL
   database: 'recruitmiage'
 });
 
@@ -323,5 +323,25 @@ app.get('/api/missions', (req, res) => {
     }
 
     res.json(results);
+  });
+});
+
+
+// 📋 Route GET : /api/projets/:id/missions
+// Récupère toutes les missions associées à un projet spécifique.
+app.get('/api/projets/:id/missions', (req, res) => {
+  const { id } = req.params;
+  const query = `
+    SELECT IdMission, Titre, Description, DateCreation
+    FROM Missions
+    WHERE IdProjet = ?
+    ORDER BY DateCreation DESC
+  `;
+  db.execute(query, [id], (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération des missions :', err);
+      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+    }
+    res.status(200).json(results);
   });
 });
