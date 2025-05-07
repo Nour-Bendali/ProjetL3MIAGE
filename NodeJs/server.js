@@ -17,7 +17,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '@Ismaeliyo10', // Mot de passe MySQL
+  password: '', // Mot de passe MySQL
   database: 'recruitmiage'
 });
 
@@ -648,6 +648,30 @@ app.get('/api/projets/:id/missions', (req, res) => {
       console.error('❌ Erreur lors de la récupération des missions :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
+    res.status(200).json(results);
+  });
+});
+
+// 📋 Route GET : /api/missions/:id/personnel
+// Récupère tous les membres d'un projet lié à une mission spécifique.
+app.get('/api/missions/:id/personnel', (req, res) => {
+  const { id } = req.params;
+
+  const query = `
+    SELECT per.Identifiant, per.Prenom, per.Nom, per.User
+    FROM Missions m
+    JOIN Projets p ON m.IdProjet = p.IdProjet
+    JOIN ProjetsPersonnel pp ON p.IdProjet = pp.IdProjet
+    JOIN Personnel per ON pp.IdPersonnel = per.Identifiant
+    WHERE m.IdMission = ?
+  `;
+
+  db.execute(query, [id], (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération des membres liés à la mission :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
     res.status(200).json(results);
   });
 });
