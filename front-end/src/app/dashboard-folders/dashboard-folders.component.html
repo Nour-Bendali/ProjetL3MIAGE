@@ -3,6 +3,15 @@
 </header>
 <main class="container mt-4">
   <h2>Mes Dossiers</h2>
-          <p></p>
+  <h2>📁 Mes Projets</h2>
+
+  <ul>
+    <li *ngFor="let projet of projets">
+      <a [routerLink]="['/projet', projet.IdProjet]">
+        🔹 {{ projet.NomProjet }} - {{ projet.Description }}
+      </a>
+    </li>
+  </ul>
+  
   <button routerLink="/" class="btn btn-secondary">Retour</button>
 </main>
