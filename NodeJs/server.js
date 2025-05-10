@@ -31,31 +31,31 @@ db.connect((err) => {
 
 // =================================================================
 // 🔐 Route POST : /api/login
-// Cette route permet à un utilisateur de se connecter avec un email et un mot de passe.
+// Cette route permet à un utilisateur de se connecter avec un nom d'utilisateur et un mot de passe.
 // Elle vérifie si les identifiants existent dans la base de données.
 // =================================================================
 app.post('/api/login', (req, res) => {
-  const { email, password } = req.body;
+  const { User, password } = req.body;
 
-  if (!email || !password) {
+  if (!User || !password) {
     return res.status(400).json({
       success: false,
-      error: 'Email et mot de passe obligatoires.'
+      error: 'User et mot de passe obligatoires.'
     });
   }
 
   const query = 'SELECT * FROM Personnel WHERE User = ? AND Password = ?';
-  db.execute(query, [email, password], (err, results) => {
+  db.execute(query, [User, password], (err, results) => {
     if (err) {
       console.error('❌ Erreur lors de la requête MySQL :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
 
     if (results.length > 0) {
-      console.log(`✅ Utilisateur authentifié : ${email}`);
+      console.log(`✅ Utilisateur authentifié : ${User}`);
       res.json({ success: true });
     } else {
-      console.log(`❌ Identifiants incorrects pour : ${email}`);
+      console.log(`❌ Identifiants incorrects pour : ${User}`);
       res.json({ success: false });
     }
   });
@@ -88,6 +88,26 @@ app.post('/api/projets', (req, res) => {
 
     console.log(`✅ Nouveau projet créé : ${nomProjet} par l'utilisateur ${createurId}`);
     res.status(201).json({ success: true, id: result.insertId, nomProjet, description });
+  });
+});
+
+app.delete('/api/projets/:id', (req, res) => {
+  const id = req.params.id;
+  console.log("🛠️ ID reçu pour suppression :", id);
+
+  const query = 'DELETE FROM Projets WHERE IdProjet = ?';
+
+  db.execute(query, [id], (err, result) => {
+    if (err) {
+      console.error('❌ Erreur lors de la suppression du projet :', err);
+      return res.status(500).send({ error: err.message });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ message: 'Projet non trouvé' });
+    }
+
+    res.status(200).send({ message: 'Projet supprimé' });
   });
 });
 
@@ -406,14 +426,14 @@ app.get('/api/personnel', (req, res) => {
 // 📋 Route POST : /api/personnel
 // Ajoute un nouveau membre dans la table Personnel.
 app.post('/api/personnel', (req, res) => {
-  const { prenom, nom, email, password } = req.body;
+  const { prenom, nom, User, password } = req.body;
 
-  if (!prenom || !nom || !email || !password) {
+  if (!prenom || !nom || !User || !password) {
     return res.status(400).json({ success: false, error: 'Tous les champs sont obligatoires.' });
   }
 
   const query = 'INSERT INTO Personnel (Prenom, Nom, User, Password) VALUES (?, ?, ?, ?)';
-  db.execute(query, [prenom, nom, email, password], (err, result) => {
+  db.execute(query, [prenom, nom, User, password], (err, result) => {
     if (err) {
       console.error('❌ Erreur lors de lajout du membre :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
@@ -469,7 +489,7 @@ app.get('/api/projets/:id', (req, res) => {
   const { id } = req.params;
   const query = `
     SELECT p.NomProjet, p.Description,
-           GROUP_CONCAT(CONCAT(per.Prenom, ' ', per.Nom, ' (Email: ', per.User, ')')) as membres,
+           GROUP_CONCAT(CONCAT(per.Prenom, ' ', per.Nom, ' (User: ', per.User, ')')) as membres,
            GROUP_CONCAT(m.Titre) as missions
     FROM Projets p
     LEFT JOIN ProjetsPersonnel pp ON p.IdProjet = pp.IdProjet
@@ -648,6 +668,30 @@ app.get('/api/projets/:id/missions', (req, res) => {
       console.error('❌ Erreur lors de la récupération des missions :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
+    res.status(200).json(results);
+  });
+});
+
+// 📋 Route GET : /api/missions/:id/personnel
+// Récupère tous les membres d'un projet lié à une mission spécifique.
+app.get('/api/missions/:id/personnel', (req, res) => {
+  const { id } = req.params;
+
+  const query = `
+    SELECT per.Identifiant, per.Prenom, per.Nom, per.User
+    FROM Missions m
+    JOIN Projets p ON m.IdProjet = p.IdProjet
+    JOIN ProjetsPersonnel pp ON p.IdProjet = pp.IdProjet
+    JOIN Personnel per ON pp.IdPersonnel = per.Identifiant
+    WHERE m.IdMission = ?
+  `;
+
+  db.execute(query, [id], (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération des membres liés à la mission :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
     res.status(200).json(results);
   });
 });

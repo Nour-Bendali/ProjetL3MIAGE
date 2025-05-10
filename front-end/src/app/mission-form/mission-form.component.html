@@ -1,17 +1,26 @@
 <form [formGroup]="missionForm" (ngSubmit)="onSubmit()">
+  <div class="mb-2">
     <label for="titre">Titre:</label>
-    <input id="titre" formControlName="titre" type="text" />
-  
+    <input id="titre" formControlName="titre" type="text" class="form-control" />
+  </div>
+
+  <div class="mb-2">
     <label for="description">Description:</label>
-    <textarea id="description" formControlName="description"></textarea>
-  
+    <textarea id="description" formControlName="description" class="form-control"></textarea>
+  </div>
+
+  <!-- 👉 Affiche le sélecteur de projet uniquement si projetId n’est pas injecté -->
+  <div class="mb-2" *ngIf="!projetId">
     <label for="idProjet">Projet:</label>
-    <select id="idProjet" formControlName="idProjet">
+    <select id="idProjet" formControlName="idProjet" class="form-select">
+      <option [value]="''" disabled selected>-- Choisir un projet --</option>
       <option *ngFor="let projet of projets" [value]="projet.IdProjet">
         {{ projet.NomProjet }}
       </option>
     </select>
-  
-    <button type="submit" [disabled]="missionForm.invalid">Créer Mission</button>
-  </form>
-  
+  </div>
+
+  <button type="submit" class="btn btn-primary" [disabled]="missionForm.invalid">
+    Créer Mission
+  </button>
+</form>

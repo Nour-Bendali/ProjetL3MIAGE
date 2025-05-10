@@ -14,29 +14,29 @@ import { HttpClient } from '@angular/common/http';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  email: string = '';
+  User: string = '';
   password: string = '';
   errorMessage: string = '';
 
   constructor(private http: HttpClient, private router: Router) {}
 
   onSubmit() {
-    console.log('Formulaire soumis', { email: this.email, password: this.password });
+    console.log('Formulaire soumis', { email: this.User, password: this.password });
 
     // 📡 Appel API pour la connexion
-    this.http.post('http://localhost:3000/api/login', { email: this.email, password: this.password })
+    this.http.post('http://localhost:3000/api/login', { User: this.User, password: this.password })
       .subscribe({
         next: (response: any) => {
           if (response.success) {
-            console.log('✅ Connexion réussie');
-            this.router.navigate(['/dashboard-projects']); // 📋 Redirection vers /dashboard-projects
+            console.log('Connexion réussie');
+            this.router.navigate(['/dashboard-folders']); // 📋 Redirection vers /dashboard-projects
           } else {
-            console.log('❌ Identifiants incorrects');
-            this.errorMessage = 'Email ou mot de passe incorrect.';
+            console.log('Identifiants incorrects');
+            this.errorMessage = 'Nom d\'Utilisateur ou mot de passe incorrect.';
           }
         },
         error: (error) => {
-          console.error('❌ Erreur lors de la connexion', error);
+          console.error('Erreur lors de la connexion', error);
           this.errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
         }
       });
