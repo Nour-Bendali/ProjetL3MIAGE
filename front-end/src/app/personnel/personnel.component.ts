@@ -4,6 +4,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router'; // Ajout pour récupérer IdProjet
 
 @Component({
   selector: 'app-personnel',
@@ -13,33 +14,36 @@ import { HttpClient } from '@angular/common/http';
   styleUrls: ['./personnel.component.css']
 })
 export class PersonnelComponent implements OnInit {
-  // Liste des membres
   personnelList: any[] = [];
   filteredPersonnel: any[] = [];
-
-  // Données pour ajouter ou modifier un membre
-  newPersonnel = { prenom: '', nom: '', email: '', password: '' };
-  editPersonnel: any = null; // Pour stocker le membre en cours de modification
-
-  // Champ de recherche
+  newPersonnel = { prenom: '', nom: '', User: '', password: '' };
+  editPersonnel: any = null;
   searchQuery: string = '';
-
-  // Message d’erreur ou de succès
   message: string = '';
+  projectId: number | null = null; // Pour stocker IdProjet
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
-    this.loadPersonnel();
+    // Récupérer IdProjet depuis l'URL
+    this.route.params.subscribe(params => {
+      this.projectId = +params['id']; // Convertir en nombre
+      if (this.projectId) {
+        this.loadPersonnel();
+      } else {
+        this.message = 'ID du projet non spécifié.';
+      }
+    });
   }
 
-  // Charger la liste des membres
   loadPersonnel(): void {
-    this.http.get('http://localhost:3000/api/personnel').subscribe({
+    if (!this.projectId) return;
+
+    this.http.get(`http://localhost:3000/api/projets/${this.projectId}/membres`).subscribe({
       next: (data: any) => {
         this.personnelList = data;
         this.filteredPersonnel = data;
-        console.log('✅ Liste des membres chargée', this.personnelList);
+        console.log('✅ Membres du projet chargés', this.personnelList);
       },
       error: (error) => {
         console.error('❌ Erreur lors du chargement des membres', error);
@@ -48,7 +52,6 @@ export class PersonnelComponent implements OnInit {
     });
   }
 
-  // Filtrer la liste selon la recherche
   filterPersonnel(): void {
     if (!this.searchQuery) {
       this.filteredPersonnel = this.personnelList;
@@ -62,9 +65,8 @@ export class PersonnelComponent implements OnInit {
     }
   }
 
-  // Ajouter un nouveau membre
   addPersonnel(): void {
-    if (!this.newPersonnel.prenom || !this.newPersonnel.nom || !this.newPersonnel.email || !this.newPersonnel.password) {
+    if (!this.newPersonnel.prenom || !this.newPersonnel.nom || !this.newPersonnel.User || !this.newPersonnel.password) {
       this.message = 'Veuillez remplir tous les champs.';
       return;
     }
@@ -73,8 +75,8 @@ export class PersonnelComponent implements OnInit {
       next: (response: any) => {
         console.log('✅ Membre ajouté', response);
         this.message = 'Membre ajouté avec succès.';
-        this.newPersonnel = { prenom: '', nom: '', email: '', password: '' }; // Réinitialiser le formulaire
-        this.loadPersonnel(); // Recharger la liste
+        this.newPersonnel = { prenom: '', nom: '', User: '', password: '' };
+        this.loadPersonnel();
       },
       error: (error) => {
         console.error('❌ Erreur lors de l’ajout', error);
@@ -83,12 +85,10 @@ export class PersonnelComponent implements OnInit {
     });
   }
 
-  // Préparer la modification d’un membre
   startEdit(person: any): void {
-    this.editPersonnel = { ...person }; // Copie pour éviter de modifier directement
+    this.editPersonnel = { ...person };
   }
 
-  // Enregistrer les modifications
   saveEdit(): void {
     if (!this.editPersonnel.Prenom || !this.editPersonnel.Nom || !this.editPersonnel.User) {
       this.message = 'Veuillez remplir tous les champs.';
@@ -99,8 +99,8 @@ export class PersonnelComponent implements OnInit {
       next: () => {
         console.log('✅ Membre modifié');
         this.message = 'Membre modifié avec succès.';
-        this.editPersonnel = null; // Sortir du mode modification
-        this.loadPersonnel(); // Recharger la liste
+        this.editPersonnel = null;
+        this.loadPersonnel();
       },
       error: (error) => {
         console.error('❌ Erreur lors de la modification', error);
@@ -109,14 +109,13 @@ export class PersonnelComponent implements OnInit {
     });
   }
 
-  // Supprimer un membre
   deletePersonnel(id: number): void {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce membre ?')) {
       this.http.delete(`http://localhost:3000/api/personnel/${id}`).subscribe({
         next: () => {
           console.log('✅ Membre supprimé');
           this.message = 'Membre supprimé avec succès.';
-          this.loadPersonnel(); // Recharger la liste
+          this.loadPersonnel();
         },
         error: (error) => {
           console.error('❌ Erreur lors de la suppression', error);
@@ -126,7 +125,6 @@ export class PersonnelComponent implements OnInit {
     }
   }
 
-  // Annuler la modification
   cancelEdit(): void {
     this.editPersonnel = null;
     this.message = '';

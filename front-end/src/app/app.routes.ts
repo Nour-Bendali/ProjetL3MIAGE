@@ -25,7 +25,7 @@ export const routes: Routes = [
   { path: 'projets-form', component: ProjetsFormComponent },
   { path: 'projets-assign', component: ProjetsAssignComponent },
   { path: 'dashboard-folders', component: DashboardFoldersComponent },
-  { path: 'personnel', component: PersonnelComponent },
+  { path: 'projets/:id/personnel', component: PersonnelComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'mission-list', component: MissionListComponent},
