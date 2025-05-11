@@ -718,3 +718,30 @@ app.get('/api/missions/:id/personnel', (req, res) => {
     res.status(200).json(results);
   });
 });
+
+
+// 📋 Route POST : /api/missions/:id/assign
+// Assigne une mission à un membre du personnel
+app.post('/api/missions/:id/assign', (req, res) => {
+  const { id } = req.params; // id de la mission
+  const { idPersonnel } = req.body;
+
+  if (!idPersonnel) {
+    return res.status(400).json({ success: false, error: 'idPersonnel est requis.' });
+  }
+
+  const query = 'INSERT INTO MissionsPersonnel (IdMission, IdPersonnel) VALUES (?, ?)';
+  db.execute(query, [id, idPersonnel], (err) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        console.warn(`⚠️ Le membre ${idPersonnel} a déjà cette mission.`);
+        return res.status(409).json({ success: false, error: 'Le membre a déjà cette mission.' });
+      }
+      console.error('❌ Erreur lors de l’affectation de la mission :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
+    console.log(`✅ Mission ${id} assignée au membre ${idPersonnel}`);
+    res.status(201).json({ success: true, message: 'Mission assignée avec succès.' });
+  });
+});
