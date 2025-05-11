@@ -3,8 +3,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router'; // Ajout pour récupérer IdProjet
+import { ActivatedRoute } from '@angular/router';
+import { PersonnelService } from '../services/personnel.service'; // Chemin corrigé
+import { HttpErrorResponse } from '@angular/common/http'; // Pour typer l'erreur
 
 @Component({
   selector: 'app-personnel',
@@ -20,15 +21,26 @@ export class PersonnelComponent implements OnInit {
   editPersonnel: any = null;
   searchQuery: string = '';
   message: string = '';
-  projectId: number | null = null; // Pour stocker IdProjet
+  projectId: number | null = null;
+  userId: number | null = null; // ID de l'utilisateur connecté
+  createurId: number | null = null; // ID du créateur du projet
+  isCreator: boolean = false; // Ajout explicite de la propriété
 
-  constructor(private http: HttpClient, private route: ActivatedRoute) {}
+  constructor(
+    private route: ActivatedRoute,
+    private personnelService: PersonnelService // Injection du service
+  ) {}
 
   ngOnInit(): void {
+    // Récupérer l'ID de l'utilisateur connecté
+    const storedUserId = localStorage.getItem('userId');
+    this.userId = storedUserId ? +storedUserId : null;
+
     // Récupérer IdProjet depuis l'URL
     this.route.params.subscribe(params => {
-      this.projectId = +params['id']; // Convertir en nombre
+      this.projectId = +params['id'];
       if (this.projectId) {
+        this.loadProjetDetails();
         this.loadPersonnel();
       } else {
         this.message = 'ID du projet non spécifié.';
@@ -36,16 +48,32 @@ export class PersonnelComponent implements OnInit {
     });
   }
 
+  loadProjetDetails(): void {
+    if (!this.projectId) return;
+
+    this.personnelService.getProjet(this.projectId).subscribe({
+      next: (response: any) => {
+        this.createurId = response.projet.CreateurId;
+        this.isCreator = this.userId === this.createurId;
+        console.log(`✅ Projet chargé, créateur: ${this.createurId}, utilisateur connecté: ${this.userId}, est créateur: ${this.isCreator}`);
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('❌ Erreur lors du chargement des détails du projet', error);
+        this.message = 'Erreur lors du chargement des détails du projet.';
+      }
+    });
+  }
+
   loadPersonnel(): void {
     if (!this.projectId) return;
 
-    this.http.get(`http://localhost:3000/api/projets/${this.projectId}/membres`).subscribe({
+    this.personnelService.getPersonnelProjet(this.projectId).subscribe({
       next: (data: any) => {
         this.personnelList = data;
         this.filteredPersonnel = data;
         console.log('✅ Membres du projet chargés', this.personnelList);
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         console.error('❌ Erreur lors du chargement des membres', error);
         this.message = 'Erreur lors du chargement des membres.';
       }
@@ -71,14 +99,19 @@ export class PersonnelComponent implements OnInit {
       return;
     }
 
-    this.http.post('http://localhost:3000/api/personnel', this.newPersonnel).subscribe({
+    if (!this.isCreator) {
+      this.message = 'Seul le créateur du projet peut ajouter des membres.';
+      return;
+    }
+
+    this.personnelService.createPersonnel(this.newPersonnel).subscribe({
       next: (response: any) => {
         console.log('✅ Membre ajouté', response);
         this.message = 'Membre ajouté avec succès.';
         this.newPersonnel = { prenom: '', nom: '', User: '', password: '' };
         this.loadPersonnel();
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         console.error('❌ Erreur lors de l’ajout', error);
         this.message = 'Erreur lors de l’ajout du membre.';
       }
@@ -95,14 +128,14 @@ export class PersonnelComponent implements OnInit {
       return;
     }
 
-    this.http.put(`http://localhost:3000/api/personnel/${this.editPersonnel.Identifiant}`, this.editPersonnel).subscribe({
+    this.personnelService.createPersonnel(this.editPersonnel).subscribe({
       next: () => {
         console.log('✅ Membre modifié');
         this.message = 'Membre modifié avec succès.';
         this.editPersonnel = null;
         this.loadPersonnel();
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         console.error('❌ Erreur lors de la modification', error);
         this.message = 'Erreur lors de la modification du membre.';
       }
@@ -110,16 +143,23 @@ export class PersonnelComponent implements OnInit {
   }
 
   deletePersonnel(id: number): void {
+    if (!this.isCreator) {
+      this.message = 'Seul le créateur du projet peut supprimer des membres.';
+      return;
+    }
+
     if (confirm('Êtes-vous sûr de vouloir supprimer ce membre ?')) {
-      this.http.delete(`http://localhost:3000/api/personnel/${id}`).subscribe({
+      if (!this.projectId) return;
+
+      this.personnelService.supprimerPersonneDuProjet(this.projectId, id).subscribe({
         next: () => {
           console.log('✅ Membre supprimé');
           this.message = 'Membre supprimé avec succès.';
           this.loadPersonnel();
         },
-        error: (error) => {
+        error: (error: HttpErrorResponse) => {
           console.error('❌ Erreur lors de la suppression', error);
-          this.message = 'Erreur lors de la suppression du membre.';
+          this.message = error.error?.error || 'Erreur lors de la suppression du membre.';
         }
       });
     }

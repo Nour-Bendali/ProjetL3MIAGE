@@ -34,6 +34,8 @@ db.connect((err) => {
 // Cette route permet à un utilisateur de se connecter avec un nom d'utilisateur et un mot de passe.
 // Elle vérifie si les identifiants existent dans la base de données.
 // =================================================================
+// ... (autres parties du code)
+
 app.post('/api/login', (req, res) => {
   const { User, password } = req.body;
 
@@ -53,13 +55,15 @@ app.post('/api/login', (req, res) => {
 
     if (results.length > 0) {
       console.log(`✅ Utilisateur authentifié : ${User}`);
-      res.json({ success: true });
+      res.json({ success: true, userId: results[0].Identifiant }); // Renvoie l'Identifiant
     } else {
       console.log(`❌ Identifiants incorrects pour : ${User}`);
       res.json({ success: false });
     }
   });
 });
+
+// ... (autres routes)
 
 // =================================================================
 // 📋 Routes pour le composant Personnel
