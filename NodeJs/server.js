@@ -15,6 +15,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
+  password: '', // Mot de passe MySQL
   password: '@Ismaeliyo10',
   database: 'recruitmiage'
 });
@@ -406,6 +407,33 @@ app.post('/api/projets/:id/personnel', (req, res) => {
   });
 });
 
+
+
+// 📋 Route GET : /api/projets
+app.get('/api/projets', (req, res) => {
+  const query = 'SELECT IdProjet, NomProjet, Description FROM Projets';
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération des projets :', err);
+      return res.status(500).json({
+        success: false,
+        error: 'Erreur interne du serveur lors de la récupération des projets.'
+      });
+    }
+
+    if (results.length === 0) {
+      console.warn('⚠️ Aucun projet trouvé dans la base de données.');
+      return res.status(200).json([]);
+    }
+
+    console.log(`✅ ${results.length} projets récupérés avec succès.`);
+    res.status(200).json(results);
+  });
+});
+
+
+
 // 📋 Route DELETE : /api/projets/:id/personnel/:idPersonnel
 app.delete('/api/projets/:id/personnel/:idPersonnel', (req, res) => {
   const { id, idPersonnel } = req.params;
@@ -500,6 +528,74 @@ app.get('/api/missions/:id/personnel', (req, res) => {
     }
 
     res.status(200).json(results);
+  });
+});
+
+
+// 📋 Route POST : /api/missions/:id/assign
+// Assigne une mission à un membre du personnel
+app.post('/api/missions/:id/assign', (req, res) => {
+  const { id } = req.params; // id de la mission
+  const { idPersonnel } = req.body;
+
+  if (!idPersonnel) {
+    return res.status(400).json({ success: false, error: 'idPersonnel est requis.' });
+  }
+
+  const query = 'INSERT INTO MissionsPersonnel (IdMission, IdPersonnel) VALUES (?, ?)';
+  db.execute(query, [id, idPersonnel], (err) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        console.warn(`⚠️ Le membre ${idPersonnel} a déjà cette mission.`);
+        return res.status(409).json({ success: false, error: 'Le membre a déjà cette mission.' });
+      }
+      console.error('❌ Erreur lors de l’affectation de la mission :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
+    console.log(`✅ Mission ${id} assignée au membre ${idPersonnel}`);
+    res.status(201).json({ success: true, message: 'Mission assignée avec succès.' });
+  });
+});
+
+
+
+// 📋 Route GET : /api/competences
+app.get('/api/competences', (req, res) => {
+  const query = 'SELECT * FROM Competences';
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération des compétences :', err);
+      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+    }
+
+    res.status(200).json(results);
+  });
+});
+
+
+// 📋 Route POST : /api/missions/:id/competences
+app.post('/api/missions/:id/competences', (req, res) => {
+  const { id } = req.params;
+  const { idCompetence } = req.body;
+
+  if (!idCompetence) {
+    return res.status(400).json({ success: false, error: 'idCompetence est requis.' });
+  }
+
+  const query = 'INSERT INTO CompetencesMissions (IdMission, IdCompetence) VALUES (?, ?)';
+  db.execute(query, [id, idCompetence], (err) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        console.warn(`⚠️ La compétence ${idCompetence} est déjà assignée à la mission ${id}.`);
+        return res.status(409).json({ success: false, error: 'La compétence est déjà assignée à cette mission.' });
+      }
+      console.error('❌ Erreur lors de l’affectation de la compétence :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
+    res.status(201).json({ success: true, message: 'Compétence assignée avec succès.' });
   });
 });
 

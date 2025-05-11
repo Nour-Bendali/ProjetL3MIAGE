@@ -34,16 +34,19 @@ export class MissionAssignComponent implements OnInit {
   }
 
   onMissionChange(): void {
-    if (!this.selectedMissionId) return;
+  if (!this.selectedMissionId) return;
 
-    this.http.get<any>(`http://localhost:3000/api/missions/${this.selectedMissionId}/personnel`).subscribe({
-      next: (data) => this.personnel = data.personnel ?? [],
-      error: (err) => {
-        console.error('❌ Erreur lors de la récupération du personnel lié à la mission', err);
-        alert('Erreur lors du chargement des membres du projet.');
-      }
-    });
-  }
+  this.http.get<any[]>(`http://localhost:3000/api/missions/${this.selectedMissionId}/personnel`).subscribe({
+    next: (data) => {
+      console.log('👥 Membres chargés :', data);
+      this.personnel = data;
+    },
+    error: (err) => {
+      console.error('❌ Erreur lors de la récupération du personnel lié à la mission', err);
+      alert('Erreur lors du chargement des membres du projet.');
+    }
+  });
+}
 
   assignMission(): void {
     if (!this.selectedMissionId || !this.selectedPersonnelId) {
