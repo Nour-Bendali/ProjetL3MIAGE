@@ -745,3 +745,44 @@ app.post('/api/missions/:id/assign', (req, res) => {
     res.status(201).json({ success: true, message: 'Mission assignée avec succès.' });
   });
 });
+
+
+
+// 📋 Route GET : /api/competences
+app.get('/api/competences', (req, res) => {
+  const query = 'SELECT * FROM Competences';
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération des compétences :', err);
+      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+    }
+
+    res.status(200).json(results);
+  });
+});
+
+
+// 📋 Route POST : /api/missions/:id/competences
+app.post('/api/missions/:id/competences', (req, res) => {
+  const { id } = req.params;
+  const { idCompetence } = req.body;
+
+  if (!idCompetence) {
+    return res.status(400).json({ success: false, error: 'idCompetence est requis.' });
+  }
+
+  const query = 'INSERT INTO CompetencesMissions (IdMission, IdCompetence) VALUES (?, ?)';
+  db.execute(query, [id, idCompetence], (err) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        console.warn(`⚠️ La compétence ${idCompetence} est déjà assignée à la mission ${id}.`);
+        return res.status(409).json({ success: false, error: 'La compétence est déjà assignée à cette mission.' });
+      }
+      console.error('❌ Erreur lors de l’affectation de la compétence :', err);
+      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+    }
+
+    res.status(201).json({ success: true, message: 'Compétence assignée avec succès.' });
+  });
+});

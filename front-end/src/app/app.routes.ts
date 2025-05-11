@@ -13,6 +13,7 @@ import { ProjetsAssignComponent } from './projets-assign/projets-assign.componen
 import { MissionFormComponent } from './mission-form/mission-form.component';
 import { MissionListComponent } from './mission-list/mission-list.component';
 import { MissionAssignComponent } from './mission-assign/mission-assign.component';
+import { CompetencesAssignComponent } from './competences-assign/competences-assign.component';
 
 
 export const routes: Routes = [
@@ -30,6 +31,7 @@ export const routes: Routes = [
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'mission-list', component: MissionListComponent},
   { path: 'projets/:id/missions', component: MissionListComponent },
+  { path: 'competences-assign', component: CompetencesAssignComponent },
   // ✅ Routes pour les projets
   { path: 'projet/:id', component: ProjetComponent }, // Vue principale d'un projet
   //{ path: 'projet-form/:id', component: ProjetsFormComponent }, // Formulaire pour gérer les membres
