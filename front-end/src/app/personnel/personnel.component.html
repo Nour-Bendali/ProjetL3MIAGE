@@ -8,62 +8,57 @@
     {{ message }}
   </div>
 
-  <!-- Champ de recherche -->
-  <div class="mb-3">
-    <label for="search" class="form-label">Rechercher :</label>
-    <input 
-      type="text" 
-      id="search" 
-      class="form-control" 
-      placeholder="Rechercher par nom ou email" 
-      [(ngModel)]="searchQuery" 
-      (input)="filterPersonnel()">
+  <!-- Champs de recherche -->
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <label for="search" class="form-label">Rechercher par nom ou email :</label>
+      <input 
+        type="text" 
+        id="search" 
+        class="form-control" 
+        placeholder="Rechercher par nom ou email" 
+        [(ngModel)]="searchQuery" 
+        (input)="filterPersonnel()">
+    </div>
+    <div class="col-md-6">
+      <label for="competenceSearch" class="form-label">Rechercher par compétence :</label>
+      <input 
+        type="text" 
+        id="competenceSearch" 
+        class="form-control" 
+        placeholder="Rechercher par compétence" 
+        [(ngModel)]="competenceQuery" 
+        (input)="filterPersonnel()">
+    </div>
   </div>
 
-  <!-- Formulaire pour ajouter un membre (sera remplacé plus tard) -->
+  <!-- Sélection et ajout d'un membre -->
   <div class="mb-4">
-    <h3>Ajouter un membre</h3>
-    <form (ngSubmit)="addPersonnel()">
-      <div class="row">
-        <div class="col-md-3 mb-3">
-          <input 
-            type="text" 
-            class="form-control" 
-            placeholder="Prénom" 
-            [(ngModel)]="newPersonnel.prenom" 
-            name="prenom" 
-            required>
-        </div>
-        <div class="col-md-3 mb-3">
-          <input 
-            type="text" 
-            class="form-control" 
-            placeholder="Nom" 
-            [(ngModel)]="newPersonnel.nom" 
-            name="nom" 
-            required>
-        </div>
-        <div class="col-md-3 mb-3">
-          <input 
-            type="text" 
-            class="form-control" 
-            placeholder="Email (User)" 
-            [(ngModel)]="newPersonnel.User" 
-            name="User" 
-            required>
-        </div>
-        <div class="col-md-3 mb-3">
-          <input 
-            type="password" 
-            class="form-control" 
-            placeholder="Mot de passe" 
-            [(ngModel)]="newPersonnel.password" 
-            name="password" 
-            required>
-        </div>
+    <h3>Ajouter un membre au projet</h3>
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="personnelSelect" class="form-label">Sélectionner un membre :</label>
+        <select 
+          id="personnelSelect" 
+          class="form-control" 
+          [(ngModel)]="selectedPersonnelId" 
+          [disabled]="!isCreator">
+          <option value="null">Sélectionnez un membre</option>
+          <option *ngFor="let person of allPersonnel" [value]="person.Identifiant">
+            {{ person.Prenom }} {{ person.Nom }} ({{ person.User }})
+          </option>
+        </select>
       </div>
-      <button type="submit" class="btn btn-primary" [disabled]="!isCreator">Ajouter</button>
-    </form>
+      <div class="col-md-2 mb-3">
+        <button 
+          type="button" 
+          class="btn btn-primary mt-4" 
+          (click)="addSelectedPersonnel()" 
+          [disabled]="!isCreator || !selectedPersonnelId">
+          Ajouter
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Liste des membres -->
@@ -76,6 +71,7 @@
           <th>Prénom</th>
           <th>Nom</th>
           <th>Email</th>
+          <th>Compétences</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -114,6 +110,14 @@
               class="form-control" 
               [(ngModel)]="editPersonnel.User" 
               name="editEmail">
+          </td>
+          <td>
+            <span *ngIf="!editPersonnel || editPersonnel.Identifiant !== person.Identifiant">
+              {{ person.Competences || 'Aucune' }}
+            </span>
+            <span *ngIf="editPersonnel && editPersonnel.Identifiant === person.Identifiant">
+              (Modification des compétences non disponible)
+            </span>
           </td>
           <td>
             <button 
