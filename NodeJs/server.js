@@ -557,7 +557,6 @@ app.post('/api/projets/:id/personnel', (req, res) => {
 
 
 // 📋 Route GET : /api/projets
-// Récupère la liste de tous les projets pour le select du formulaire de mission
 app.get('/api/projets', (req, res) => {
   const query = 'SELECT IdProjet, NomProjet, Description FROM Projets';
 
@@ -572,11 +571,11 @@ app.get('/api/projets', (req, res) => {
 
     if (results.length === 0) {
       console.warn('⚠️ Aucun projet trouvé dans la base de données.');
-      return res.status(200).json({ success: true, projets: [] });
+      return res.status(200).json([]);
     }
 
     console.log(`✅ ${results.length} projets récupérés avec succès.`);
-    res.status(200).json({ success: true, projets: results });
+    res.status(200).json(results);
   });
 });
 
