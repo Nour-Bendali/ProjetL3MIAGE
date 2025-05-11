@@ -4,6 +4,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { take } from 'rxjs/operators';
 
+// VOIR CETTE PAGE SUR LE SITE http://localhost:4200/projets/1/missions
 @Component({
   selector: 'app-mission-list',
   standalone: true,
