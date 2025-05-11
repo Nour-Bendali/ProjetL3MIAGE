@@ -23,17 +23,18 @@ export class ProjetsAssignComponent implements OnInit {
     this.fetchPersonnel();
   }
 
-  fetchProjets(): void {
-    this.http.get<any>('http://localhost:3000/api/projets').subscribe({
-      next: (data) => {
-        this.projets = data.projets ?? []; // ✅ corrige le problème NG0900
-      },
-      error: (err) => {
-        console.error('❌ Erreur lors du chargement des projets', err);
-        alert('Erreur lors du chargement des projets.');
-      }
-    });
-  }
+fetchProjets(): void {
+  this.http.get<any[]>('http://localhost:3000/api/projets').subscribe({
+    next: (data) => {
+      console.log('📦 Projets chargés :', data);
+      this.projets = data;
+    },
+    error: (err) => {
+      console.error('❌ Erreur lors du chargement des projets', err);
+      alert('Erreur lors du chargement des projets.');
+    }
+  });
+}
 
   fetchPersonnel(): void {
     this.http.get<any>('http://localhost:3000/api/personnel').subscribe({
