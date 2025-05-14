@@ -17,7 +17,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '', // Mot de passe MySQL
+  password: '@Ismaeliyo10', // Mot de passe MySQL
   database: 'recruitmiage' // Nom de la base de données
 });
 
@@ -223,34 +223,77 @@ app.delete('/api/projets/:id', (req, res) => {
 // ➕ Route POST : /api/projets/:id/membres
 app.post('/api/projets/:id/membres', (req, res) => {
   const { id } = req.params;
-  const { IdentifiantPersonnel } = req.body;
-  const query = 'INSERT INTO ProjetsPersonnel (IdProjet, IdentifiantPersonnel) VALUES (?, ?)';
-  db.execute(query, [id, IdentifiantPersonnel], (err) => {
+  const { idPersonnel, createurId } = req.body;
+
+  // Vérification stricte des paramètres
+  if (typeof idPersonnel === 'undefined' || typeof createurId === 'undefined' || !idPersonnel || !createurId) {
+    return res.status(400).json({
+      success: false,
+      error: 'ID du membre et ID du créateur sont obligatoires et ne peuvent pas être undefined.'
+    });
+  }
+
+  const checkCreatorQuery = 'SELECT CreateurId FROM Projets WHERE IdProjet = ?';
+  db.execute(checkCreatorQuery, [id], (err, results) => {
     if (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        console.warn('⚠️ Ce membre est déjà dans le projet.');
-        return res.status(409).json({ success: false, error: 'Le membre est déjà dans ce projet.' });
-      }
-      console.error('❌ Erreur lors de l’ajout du membre au projet :', err);
+      console.error('❌ Erreur lors de la vérification du créateur :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
-    res.status(201).json({ success: true });
+
+    if (results.length === 0 || results[0].CreateurId !== createurId) {
+      console.log(`❌ Tentative non autorisée d'ajout de membre par l'utilisateur ${createurId}`);
+      return res.status(403).json({ success: false, error: 'Seul le créateur peut ajouter des membres.' });
+    }
+
+    const addMemberQuery = 'INSERT INTO ProjetsPersonnel (IdProjet, IdPersonnel) VALUES (?, ?)';
+    db.execute(addMemberQuery, [id, idPersonnel], (err, result) => {
+      if (err) {
+        console.error('❌ Erreur lors de l\'ajout du membre :', err);
+        return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+      }
+
+      console.log(`✅ Membre ${idPersonnel} ajouté au projet ${id}`);
+      res.status(200).json({ success: true, message: 'Membre ajouté avec succès.' });
+    });
   });
 });
 
 // 🗑️ Route DELETE : /api/projets/:id/membres/:idPersonnel
 app.delete('/api/projets/:id/membres/:idPersonnel', (req, res) => {
   const { id, idPersonnel } = req.params;
-  const query = 'DELETE FROM ProjetsPersonnel WHERE IdProjet = ? AND IdentifiantPersonnel = ?';
-  db.execute(query, [id, idPersonnel], (err) => {
+  const { createurId } = req.body;
+
+  if (!createurId) {
+    return res.status(400).json({
+      success: false,
+      error: 'ID du créateur obligatoire.'
+    });
+  }
+
+  const checkCreatorQuery = 'SELECT CreateurId FROM Projets WHERE IdProjet = ?';
+  db.execute(checkCreatorQuery, [id], (err, results) => {
     if (err) {
-      console.error('❌ Erreur lors de la suppression du membre du projet :', err);
+      console.error('❌ Erreur lors de la vérification du créateur :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
-    res.json({ success: true });
+
+    if (results.length === 0 || results[0].CreateurId !== createurId) {
+      console.log(`❌ Tentative non autorisée de suppression de membre par l'utilisateur ${createurId}`);
+      return res.status(403).json({ success: false, error: 'Seul le créateur peut supprimer des membres.' });
+    }
+
+    const removeMemberQuery = 'DELETE FROM ProjetsPersonnel WHERE IdProjet = ? AND IdPersonnel = ?'; // Correction ici
+    db.execute(removeMemberQuery, [id, idPersonnel], (err, result) => {
+      if (err) {
+        console.error('❌ Erreur lors de la suppression du membre :', err);
+        return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+      }
+
+      console.log(`✅ Membre ${idPersonnel} supprimé du projet ${id}`);
+      res.status(200).json({ success: true, message: 'Membre supprimé avec succès.' });
+    });
   });
 });
-
 // ➕ Route POST : /api/projets/:id/personnel
 app.post('/api/projets/:id/personnel', (req, res) => {
   const { id } = req.params;
@@ -380,6 +423,27 @@ app.post('/api/missions/:id/competences', (req, res) => {
   });
 });
 
+// 📋 Route GET : /api/projets/:id/membres
+
+app.get('/api/projets/:id/membres', (req, res) => {
+  const { id } = req.params;
+  const query = `
+    SELECT p.Identifiant, p.Prenom, p.Nom, p.User, GROUP_CONCAT(c.Competence) as Competences
+    FROM ProjetsPersonnel pp
+    JOIN Personnel p ON pp.IdPersonnel = p.Identifiant
+    LEFT JOIN CompetencesPersonnel cp ON p.Identifiant = cp.IdPersonnel
+    LEFT JOIN Competences c ON cp.IdCompetence = c.IdentifiantC
+    WHERE pp.IdProjet = ?
+    GROUP BY p.Identifiant
+  `;
+  db.execute(query, [id], (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération des membres :', err);
+      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+    }
+    res.status(200).json(results);
+  });
+});
 // 📋 Route GET : /api/projets/:id/missions
 app.get('/api/projets/:id/missions', (req, res) => {
   const { id } = req.params;

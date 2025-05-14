@@ -1,11 +1,12 @@
 // src/app/personnel/personnel.component.ts
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core'; // Ajoute PLATFORM_ID et Inject
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { PersonnelService } from '../services/personnel.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common'; // Ajoute isPlatformBrowser
 
 @Component({
   selector: 'app-personnel',
@@ -30,12 +31,18 @@ export class PersonnelComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private personnelService: PersonnelService
+    private personnelService: PersonnelService,
+    @Inject(PLATFORM_ID) private platformId: Object // Injecte PLATFORM_ID
   ) {}
 
   ngOnInit(): void {
-    const storedUserId = localStorage.getItem('userId');
-    this.userId = storedUserId ? +storedUserId : null;
+    // Vérifie si on est côté client avant d'accéder à localStorage
+    if (isPlatformBrowser(this.platformId)) {
+      const storedUserId = localStorage.getItem('userId');
+      this.userId = storedUserId ? +storedUserId : null;
+    } else {
+      this.userId = null; // Valeur par défaut en SSR
+    }
 
     this.route.params.subscribe(params => {
       this.projectId = +params['id'];
@@ -51,16 +58,25 @@ export class PersonnelComponent implements OnInit {
 
   loadProjetDetails(): void {
     if (!this.projectId) return;
-
+  
     this.personnelService.getProjet(this.projectId).subscribe({
       next: (response: any) => {
-        this.createurId = response.projet.CreateurId;
-        this.isCreator = this.userId === this.createurId;
-        console.log(`✅ Projet chargé, créateur: ${this.createurId}, utilisateur connecté: ${this.userId}, est créateur: ${this.isCreator}`);
+        if (response && response.CreateurId !== undefined) {
+          this.createurId = response.CreateurId;
+          this.isCreator = this.userId === this.createurId;
+          console.log(`✅ Projet chargé, créateur: ${this.createurId}, utilisateur connecté: ${this.userId}, est créateur: ${this.isCreator}`);
+        } else {
+          console.error('❌ Réponse inattendue :', response);
+          this.message = 'Projet invalide.';
+          this.createurId = null;
+          this.isCreator = false;
+        }
       },
       error: (error: HttpErrorResponse) => {
-        console.error('❌ Erreur lors du chargement des détails du projet', error);
-        this.message = 'Erreur lors du chargement des détails du projet.';
+        console.error('❌ Erreur :', error);
+        this.message = 'Erreur lors du chargement du projet.';
+        this.createurId = null;
+        this.isCreator = false;
       }
     });
   }
