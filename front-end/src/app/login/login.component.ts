@@ -29,6 +29,9 @@ export class LoginComponent {
         next: (response: any) => {
           if (response.success) {
             console.log('Connexion réussie');
+            // Stocker l'Identifiant dans localStorage
+            const userId = response.userId; // Récupérer l'Identifiant envoyé par le serveur
+            localStorage.setItem('userId', userId);
             this.router.navigate(['/dashboard-folders']); // 📋 Redirection vers /dashboard-projects
           } else {
             console.log('Identifiants incorrects');

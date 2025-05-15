@@ -1,10 +1,12 @@
 // src/app/personnel/personnel.component.ts
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core'; // Ajoute PLATFORM_ID et Inject
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router'; // Ajout pour récupérer IdProjet
+import { ActivatedRoute } from '@angular/router';
+import { PersonnelService } from '../services/personnel.service';
+import { HttpErrorResponse } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common'; // Ajoute isPlatformBrowser
 
 @Component({
   selector: 'app-personnel',
@@ -16,22 +18,65 @@ import { ActivatedRoute } from '@angular/router'; // Ajout pour récupérer IdPr
 export class PersonnelComponent implements OnInit {
   personnelList: any[] = [];
   filteredPersonnel: any[] = [];
-  newPersonnel = { prenom: '', nom: '', User: '', password: '' };
+  allPersonnel: any[] = [];
+  selectedPersonnelId: number | null = null;
   editPersonnel: any = null;
   searchQuery: string = '';
+  competenceQuery: string = '';
   message: string = '';
-  projectId: number | null = null; // Pour stocker IdProjet
+  projectId: number | null = null;
+  userId: number | null = null;
+  createurId: number | null = null;
+  isCreator: boolean = false;
 
-  constructor(private http: HttpClient, private route: ActivatedRoute) {}
+  constructor(
+    private route: ActivatedRoute,
+    private personnelService: PersonnelService,
+    @Inject(PLATFORM_ID) private platformId: Object // Injecte PLATFORM_ID
+  ) {}
 
   ngOnInit(): void {
-    // Récupérer IdProjet depuis l'URL
+    // Vérifie si on est côté client avant d'accéder à localStorage
+    if (isPlatformBrowser(this.platformId)) {
+      const storedUserId = localStorage.getItem('userId');
+      this.userId = storedUserId ? +storedUserId : null;
+    } else {
+      this.userId = null; // Valeur par défaut en SSR
+    }
+
     this.route.params.subscribe(params => {
-      this.projectId = +params['id']; // Convertir en nombre
+      this.projectId = +params['id'];
       if (this.projectId) {
+        this.loadProjetDetails();
         this.loadPersonnel();
+        this.loadAllPersonnel();
       } else {
         this.message = 'ID du projet non spécifié.';
+      }
+    });
+  }
+
+  loadProjetDetails(): void {
+    if (!this.projectId) return;
+  
+    this.personnelService.getProjet(this.projectId).subscribe({
+      next: (response: any) => {
+        if (response && response.CreateurId !== undefined) {
+          this.createurId = response.CreateurId;
+          this.isCreator = this.userId === this.createurId;
+          console.log(`✅ Projet chargé, créateur: ${this.createurId}, utilisateur connecté: ${this.userId}, est créateur: ${this.isCreator}`);
+        } else {
+          console.error('❌ Réponse inattendue :', response);
+          this.message = 'Projet invalide.';
+          this.createurId = null;
+          this.isCreator = false;
+        }
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('❌ Erreur :', error);
+        this.message = 'Erreur lors du chargement du projet.';
+        this.createurId = null;
+        this.isCreator = false;
       }
     });
   }
@@ -39,48 +84,75 @@ export class PersonnelComponent implements OnInit {
   loadPersonnel(): void {
     if (!this.projectId) return;
 
-    this.http.get(`http://localhost:3000/api/projets/${this.projectId}/membres`).subscribe({
+    this.personnelService.getPersonnelProjet(this.projectId).subscribe({
       next: (data: any) => {
         this.personnelList = data;
         this.filteredPersonnel = data;
-        console.log('✅ Membres du projet chargés', this.personnelList);
+        console.log('✅ Membres du projet chargés avec compétences', this.personnelList);
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         console.error('❌ Erreur lors du chargement des membres', error);
         this.message = 'Erreur lors du chargement des membres.';
       }
     });
   }
 
+  loadAllPersonnel(): void {
+    this.personnelService.getAllPersonnel().subscribe({
+      next: (data: any) => {
+        this.allPersonnel = data;
+        console.log('✅ Tous les membres chargés', this.allPersonnel);
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('❌ Erreur lors du chargement de tous les membres', error);
+        this.message = 'Erreur lors du chargement de tous les membres.';
+      }
+    });
+  }
+
   filterPersonnel(): void {
-    if (!this.searchQuery) {
-      this.filteredPersonnel = this.personnelList;
-    } else {
+    this.filteredPersonnel = this.personnelList;
+
+    // Filtrer par recherche générale (Prénom, Nom, Email)
+    if (this.searchQuery) {
       const query = this.searchQuery.toLowerCase();
-      this.filteredPersonnel = this.personnelList.filter(person =>
+      this.filteredPersonnel = this.filteredPersonnel.filter(person =>
         person.Prenom.toLowerCase().includes(query) ||
         person.Nom.toLowerCase().includes(query) ||
         person.User.toLowerCase().includes(query)
       );
     }
+
+    // Filtrer par compétence
+    if (this.competenceQuery) {
+      const compQuery = this.competenceQuery.toLowerCase();
+      this.filteredPersonnel = this.filteredPersonnel.filter(person =>
+        person.Competences?.toLowerCase().includes(compQuery)
+      );
+    }
   }
 
-  addPersonnel(): void {
-    if (!this.newPersonnel.prenom || !this.newPersonnel.nom || !this.newPersonnel.User || !this.newPersonnel.password) {
-      this.message = 'Veuillez remplir tous les champs.';
+  addSelectedPersonnel(): void {
+    if (!this.isCreator) {
+      this.message = 'Seul le créateur du projet peut ajouter des membres.';
       return;
     }
 
-    this.http.post('http://localhost:3000/api/personnel', this.newPersonnel).subscribe({
-      next: (response: any) => {
-        console.log('✅ Membre ajouté', response);
+    if (!this.selectedPersonnelId || !this.projectId) {
+      this.message = 'Veuillez sélectionner un membre.';
+      return;
+    }
+
+    this.personnelService.ajouterPersonneAuProjet(this.projectId, this.selectedPersonnelId).subscribe({
+      next: () => {
+        console.log('✅ Membre ajouté au projet');
         this.message = 'Membre ajouté avec succès.';
-        this.newPersonnel = { prenom: '', nom: '', User: '', password: '' };
+        this.selectedPersonnelId = null;
         this.loadPersonnel();
       },
-      error: (error) => {
-        console.error('❌ Erreur lors de l’ajout', error);
-        this.message = 'Erreur lors de l’ajout du membre.';
+      error: (error: HttpErrorResponse) => {
+        console.error('❌ Erreur lors de l’ajout au projet', error);
+        this.message = error.error?.error || 'Erreur lors de l’ajout du membre au projet.';
       }
     });
   }
@@ -95,14 +167,14 @@ export class PersonnelComponent implements OnInit {
       return;
     }
 
-    this.http.put(`http://localhost:3000/api/personnel/${this.editPersonnel.Identifiant}`, this.editPersonnel).subscribe({
+    this.personnelService.createPersonnel(this.editPersonnel).subscribe({
       next: () => {
         console.log('✅ Membre modifié');
         this.message = 'Membre modifié avec succès.';
         this.editPersonnel = null;
         this.loadPersonnel();
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         console.error('❌ Erreur lors de la modification', error);
         this.message = 'Erreur lors de la modification du membre.';
       }
@@ -110,16 +182,23 @@ export class PersonnelComponent implements OnInit {
   }
 
   deletePersonnel(id: number): void {
+    if (!this.isCreator) {
+      this.message = 'Seul le créateur du projet peut supprimer des membres.';
+      return;
+    }
+
     if (confirm('Êtes-vous sûr de vouloir supprimer ce membre ?')) {
-      this.http.delete(`http://localhost:3000/api/personnel/${id}`).subscribe({
+      if (!this.projectId) return;
+
+      this.personnelService.supprimerPersonneDuProjet(this.projectId, id).subscribe({
         next: () => {
           console.log('✅ Membre supprimé');
           this.message = 'Membre supprimé avec succès.';
           this.loadPersonnel();
         },
-        error: (error) => {
+        error: (error: HttpErrorResponse) => {
           console.error('❌ Erreur lors de la suppression', error);
-          this.message = 'Erreur lors de la suppression du membre.';
+          this.message = error.error?.error || 'Erreur lors de la suppression du membre.';
         }
       });
     }
