@@ -163,6 +163,8 @@ app.post('/api/projets/:id/membres', (req, res) => {
   });
 });
 
+
+
 /*
 =====================================
 📋 Route GET : /api/projets
@@ -200,6 +202,31 @@ app.get('/api/projets', (req, res) => {
       return res.status(500).json({ success: false, error: 'Erreur serveur.' });
     }
 
+    res.status(200).json(results);
+  });
+});
+
+// justo después de tu ruta /api/projets/:id/membres
+app.get('/api/projets/:id/personnel', (req, res) => {
+  const { id } = req.params;
+  const query = `
+    SELECT p.Identifiant,
+           p.Prenom,
+           p.Nom,
+           p.User,
+           GROUP_CONCAT(c.Competence) AS Competences
+    FROM ProjetsPersonnel pp
+    JOIN Personnel p ON pp.IdPersonnel = p.Identifiant
+    LEFT JOIN CompetencesPersonnel cp ON p.Identifiant = cp.IdPersonnel
+    LEFT JOIN Competences c ON cp.IdCompetence = c.IdentifiantC
+    WHERE pp.IdProjet = ?
+    GROUP BY p.Identifiant
+  `;
+  db.execute(query, [id], (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération du personnel du projet :', err);
+      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+    }
     res.status(200).json(results);
   });
 });

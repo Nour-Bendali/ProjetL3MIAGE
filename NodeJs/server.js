@@ -17,7 +17,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '@Ismaeliyo10', // Mot de passe MySQL
+  password: '', // Mot de passe MySQL
   database: 'recruitmiage' // Nom de la base de données
 });
 
