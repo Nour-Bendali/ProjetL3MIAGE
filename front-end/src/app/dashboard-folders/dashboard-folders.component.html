@@ -8,7 +8,7 @@
   <div class="mb-4">
     <ul class="list-group">
       <li *ngFor="let projet of projets" class="list-group-item d-flex justify-content-between align-items-center">
-        <a [routerLink]="['/projet', projet.IdProjet]">
+        <a [routerLink]="['/projets', projet.IdProjet]">
           🔹 {{ projet.NomProjet }} - {{ projet.Description }}
         </a>
         <button class="btn btn-danger btn-sm" (click)="supprimerProjet(projet.IdProjet)">Supprimer</button>

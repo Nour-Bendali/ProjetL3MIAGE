@@ -1,0 +1,55 @@
+/* Estilos personalizados para la página de asignación de proyectos con fondo oscuro */
+
+body {
+    background-color: #000000;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+}
+
+
+.card {
+    background-color: #1f1f1f;
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+}
+
+.card-title {
+    font-weight: bold;
+    font-size: 2rem;
+    color: #ffffff;
+}
+
+.form-select {
+    border-radius: 12px;
+    background-color: #2a2a2a;
+    color: #ffffff;
+    border: 2px solid #444444;
+    font-size: 1rem;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    padding: 12px 20px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.mb-3 label {
+    font-weight: bold;
+    color: #bbbbbb;
+}
+
+.container {
+    padding-top: 50px;
+    min-height: 100vh;
+}
