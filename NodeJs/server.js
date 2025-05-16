@@ -195,9 +195,9 @@ app.get('/api/projets/:id', (req, res) => {
 
 // ➕ Route POST : /api/projets
 app.post('/api/projets', (req, res) => {
-  const { NomProjet, Description, CreateurId } = req.body;
-  const query = 'INSERT INTO Projets (NomProjet, Description, CreateurId) VALUES (?, ?, ?)';
-  db.execute(query, [NomProjet, Description, CreateurId], (err, result) => {
+  const { nomProjet, description, createurId } = req.body;
+  const query = 'INSERT INTO Projets (nomProjet, description, createurId) VALUES (?, ?, ?)';
+  db.execute(query, [nomProjet, description, createurId], (err, result) => {
     if (err) {
       console.error('❌ Erreur lors de la création du projet :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
@@ -375,9 +375,9 @@ app.get('/api/missions/:id/personnel', (req, res) => {
 
 // ➕ Route POST : /api/missions
 app.post('/api/missions', (req, res) => {
-  const { NomMission, IdProjet } = req.body;
+  const { nomMission, IdProjet } = req.body;
   const query = 'INSERT INTO Missions (NomMission, IdProjet) VALUES (?, ?)';
-  db.execute(query, [NomMission, IdProjet], (err, result) => {
+  db.execute(query, [nomMission, IdProjet], (err, result) => {
     if (err) {
       console.error('❌ Erreur lors de la création de la mission :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });

@@ -39,7 +39,7 @@ export class ProjetComponent implements OnInit {
     if (this.projectId) {
       this.http.get(`http://localhost:3000/api/projets/${this.projectId}`).subscribe({
         next: (data: any) => {
-          this.projet = data.projet;
+          this.projet = data;
           console.log('✅ Projet chargé', this.projet);
           this.refreshMissions();
         },
