@@ -206,30 +206,6 @@ app.get('/api/projets', (req, res) => {
   });
 });
 
-// justo después de tu ruta /api/projets/:id/membres
-app.get('/api/projets/:id/personnel', (req, res) => {
-  const { id } = req.params;
-  const query = `
-    SELECT p.Identifiant,
-           p.Prenom,
-           p.Nom,
-           p.User,
-           GROUP_CONCAT(c.Competence) AS Competences
-    FROM ProjetsPersonnel pp
-    JOIN Personnel p ON pp.IdPersonnel = p.Identifiant
-    LEFT JOIN CompetencesPersonnel cp ON p.Identifiant = cp.IdPersonnel
-    LEFT JOIN Competences c ON cp.IdCompetence = c.IdentifiantC
-    WHERE pp.IdProjet = ?
-    GROUP BY p.Identifiant
-  `;
-  db.execute(query, [id], (err, results) => {
-    if (err) {
-      console.error('❌ Erreur lors de la récupération du personnel du projet :', err);
-      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
-    }
-    res.status(200).json(results);
-  });
-});
 
 
 /* 
@@ -241,45 +217,18 @@ Cette route permet de récupérer les détails d'un projet, y compris ses membre
 */
 app.get('/api/projets/:id', (req, res) => {
   const { id } = req.params;
-
-  // 🔎 Requête SQL pour récupérer les informations du projet
-  const projetQuery = 'SELECT * FROM Projets WHERE IdProjet = ?';
-  const membresQuery = `
-    SELECT p.Identifiant, p.Prenom, p.Nom, c.Competence
-    FROM ProjetsPersonnel pp
-    JOIN Personnel p ON pp.IdPersonnel = p.Identifiant
-    LEFT JOIN CompetencesPersonnel cp ON p.Identifiant = cp.IdPersonnel
-    LEFT JOIN Competences c ON cp.IdCompetence = c.IdentifiantC
-    WHERE pp.IdProjet = ?
-  `;
-
-  // 📡 Récupération des détails du projet
-  db.execute(projetQuery, [id], (err, projetResults) => {
-    if (err) {
-      // ❌ Gestion des erreurs SQL
-      console.error('❌ Erreur lors de la récupération du projet :', err);
-      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+  db.execute(
+    'SELECT * FROM Projets WHERE IdProjet = ?',
+    [id],
+    (err, results) => {
+      if (err)    return res.status(500).json({ success: false });
+      if (!results.length)
+                    return res.status(404).json({ success: false, error: 'Projet non trouvé' });
+      res.json(results[0]);
     }
-
-    if (projetResults.length === 0) {
-      // ❌ Projet non trouvé
-      return res.status(404).json({ success: false, error: 'Projet non trouvé.' });
-    }
-
-    // 📡 Récupération des membres et de leurs compétences
-    db.execute(membresQuery, [id], (err, membresResults) => {
-      if (err) {
-        // ❌ Gestion des erreurs SQL
-        console.error('❌ Erreur lors de la récupération des membres :', err);
-        return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
-      }
-
-      // ✅ Réponse avec les détails du projet et ses membres
-      console.log(`✅ Détails du projet ${id} récupérés avec succès`);
-      res.status(200).json({ success: true, projet: projetResults[0], membres: membresResults });
-    });
-  });
+  );
 });
+
 
 /* 
 =====================================
@@ -512,31 +461,40 @@ app.delete('/api/personnel/:id', (req, res) => {
 
 // 📋 Route GET : /api/projets/:id
 // Récupère les détails d'un projet (nom, description, membres, missions).
-app.get('/api/projets/:id', (req, res) => {
+app.get('/api/projets/:id/personnel', (req, res) => {
   const { id } = req.params;
-  const query = `
-    SELECT p.NomProjet, p.Description,
-           GROUP_CONCAT(CONCAT(per.Prenom, ' ', per.Nom, ' (User: ', per.User, ')')) as membres,
-           GROUP_CONCAT(m.Titre) as missions
-    FROM Projets p
-    LEFT JOIN ProjetsPersonnel pp ON p.IdProjet = pp.IdProjet
-    LEFT JOIN Personnel per ON pp.IdentifiantPersonnel = per.Identifiant
-    LEFT JOIN Missions m ON p.IdProjet = m.IdProjet
-    WHERE p.IdProjet = ?
-    GROUP BY p.IdProjet
-  `;
-  db.execute(query, [id], (err, results) => {
-    if (err) {
-      console.error(' Erreur lors de la récupération du projet :', err);
-      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+  // 1) Proyecto
+  db.execute(
+    'SELECT * FROM Projets WHERE IdProjet = ?',
+    [id],
+    (err, projets) => {
+      if (err)    return res.status(500).json({ success: false });
+      if (!projets.length)
+                    return res.status(404).json({ success: false, error: 'Projet non trouvé' });
+      const projet = projets[0];
+      // 2) Miembros con GROUP_CONCAT
+      const sql = `
+        SELECT 
+          p.Identifiant,
+          p.Prenom,
+          p.Nom,
+          p.User,
+          GROUP_CONCAT(c.Competence) AS Competences
+        FROM ProjetsPersonnel pp
+        JOIN Personnel p ON pp.IdPersonnel = p.Identifiant
+        LEFT JOIN CompetencesPersonnel cp ON p.Identifiant = cp.IdPersonnel
+        LEFT JOIN Competences c ON cp.IdCompetence = c.IdentifiantC
+        WHERE pp.IdProjet = ?
+        GROUP BY p.Identifiant
+      `;
+      db.execute(sql, [id], (err, membres) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true, projet, membres });
+      });
     }
-    const projet = results[0] || {};
-    // Formater les champs membres et missions en tableaux
-    projet.membres = projet.membres ? projet.membres.split(',') : [];
-    projet.missions = projet.missions ? projet.missions.split(',') : [];
-    res.status(200).json(projet);
-  });
+  );
 });
+
 
 // 📋 Route POST : /api/projets
 // Crée un nouveau projet dans la base de données
@@ -558,6 +516,57 @@ app.post('/api/projets', (req, res) => {
     console.log('✅ Nouveau projet créé :', nomProjet);
     res.status(201).json({ success: true, id: result.insertId });
   });
+});
+
+
+ // 📋 Route GET : /api/projets/:id/personnel
+app.get('/api/projets/:id/personnel', (req, res) => {
+  const { id } = req.params;
+
+  // 1) Recupera el projet
+  db.execute(
+    'SELECT * FROM Projets WHERE IdProjet = ?',
+    [id],
+    (err, projets) => {
+      if (err) {
+        console.error('❌ Erreur projet :', err);
+        return res.status(500).json({ success: false, error: 'Erreur interne.' });
+      }
+      if (projets.length === 0) {
+        return res.status(404).json({ success: false, error: 'Projet non trouvé.' });
+      }
+      const projet = projets[0];
+
+      // 2) Recupera los membres con sus competencias agrupadas
+      const sql = `
+        SELECT 
+          p.Identifiant,
+          p.Prenom,
+          p.Nom,
+          p.User,
+          GROUP_CONCAT(c.Competence SEPARATOR ',') AS Competences
+        FROM ProjetsPersonnel pp
+        JOIN Personnel p ON pp.IdPersonnel = p.Identifiant
+        LEFT JOIN CompetencesPersonnel cp ON p.Identifiant = cp.IdPersonnel
+        LEFT JOIN Competences c ON cp.IdCompetence = c.IdentifiantC
+        WHERE pp.IdProjet = ?
+        GROUP BY p.Identifiant
+      `;
+      db.execute(sql, [id], (err, membres) => {
+        if (err) {
+          console.error('❌ Erreur membres :', err);
+          return res.status(500).json({ success: false, error: 'Erreur interne.' });
+        }
+
+        // 3) Envía la respuesta que tu Angular espera
+        res.status(200).json({
+          success: true,
+          projet,
+          membres
+        });
+      });
+    }
+  );
 });
 
 

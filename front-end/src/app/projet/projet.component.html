@@ -21,7 +21,7 @@
     <h4>Missions du projet</h4>
     <ul>
       <li *ngFor="let mission of projet.missions">
-        {{ mission.Titre }}
+        {{ mission.Titre }} - {{ mission.Description }}
       </li>
     </ul>
 
@@ -31,11 +31,15 @@
       (missionCree)="refreshMissions()">
     </app-mission-form>
 
-    <button class="btn btn-primary" (click)="openProjetForm()">Gérer les membres</button>
+    <!-- Botón que ahora navega correctamente -->
+    <button 
+      class="btn btn-primary" 
+      [routerLink]="['/projets', projectId, 'personnel']">
+      Gérer les membres
+    </button>
   </div>
 
   <button (click)="retour()">⬅ Retour au tableau de bord</button>
-
 
   <ng-template #loading>
     <p>Chargement du projet...</p>

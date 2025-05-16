@@ -7,7 +7,6 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
-
 // 🛡️ Middleware pour activer CORS (Cross-Origin Resource Sharing)
 // et pour permettre la réception de données JSON dans les requêtes
 app.use(cors());
@@ -18,7 +17,7 @@ const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '', // Mot de passe MySQL
-  database: 'recruitmiage', // Nom de la base de données
+  database: 'recruitmiage'
 });
 
 db.connect((err) => {
@@ -65,7 +64,7 @@ app.post('/api/verify-user', (req, res) => {
   const query = 'SELECT * FROM Personnel WHERE User = ?';
   db.execute(query, [User], (err, results) => {
     if (err) {
-      console.error('❌ Erreur lors de la vérification de l’utilisateur :', err);
+      console.error('❌ Erreur lors de la vérification de l\'utilisateur :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
     res.json({ exists: results.length > 0 });
@@ -88,7 +87,6 @@ app.post('/api/reset-password', (req, res) => {
 // 🧩 PERSONNEL COMPONENT
 // =============================================================
 
-// 📋 Route GET : /api/personnel
 app.get('/api/personnel', (req, res) => {
   const query = `
     SELECT p.Identifiant, p.Prenom, p.Nom, p.User, GROUP_CONCAT(c.Competence) as Competences
@@ -106,23 +104,31 @@ app.get('/api/personnel', (req, res) => {
   });
 });
 
-// ➕ Route POST : /api/personnel
 app.post('/api/personnel', (req, res) => {
   const { Prenom, Nom, User, Password } = req.body;
+
+  if (!Prenom || !Nom || !User || !Password) {
+    return res.status(400).json({ success: false, error: 'Tous les champs sont obligatoires.' });
+  }
+
   const query = 'INSERT INTO Personnel (Prenom, Nom, User, Password) VALUES (?, ?, ?, ?)';
   db.execute(query, [Prenom, Nom, User, Password], (err, result) => {
     if (err) {
-      console.error('❌ Erreur lors de l’ajout du personnel :', err);
+      console.error('❌ Erreur lors de l\'ajout du personnel :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
     res.status(201).json({ success: true, id: result.insertId });
   });
 });
 
-// ✏️ Route PUT : /api/personnel/:id
 app.put('/api/personnel/:id', (req, res) => {
   const { id } = req.params;
   const { Prenom, Nom, User } = req.body;
+
+  if (!Prenom || !Nom || !User) {
+    return res.status(400).json({ success: false, error: 'Tous les champs sont obligatoires.' });
+  }
+
   const query = 'UPDATE Personnel SET Prenom = ?, Nom = ?, User = ? WHERE Identifiant = ?';
   db.execute(query, [Prenom, Nom, User, id], (err) => {
     if (err) {
@@ -133,7 +139,6 @@ app.put('/api/personnel/:id', (req, res) => {
   });
 });
 
-// 🗑️ Route DELETE : /api/personnel/:id
 app.delete('/api/personnel/:id', (req, res) => {
   const { id } = req.params;
   const query = 'DELETE FROM Personnel WHERE Identifiant = ?';
@@ -150,7 +155,6 @@ app.delete('/api/personnel/:id', (req, res) => {
 // 🧩 COMPETENCES COMPONENT
 // =============================================================
 
-// 📋 Route GET : /api/competences
 app.get('/api/competences', (req, res) => {
   const query = 'SELECT * FROM Competences';
 
@@ -167,7 +171,6 @@ app.get('/api/competences', (req, res) => {
 // 🧩 PROJETS COMPONENT
 // =============================================================
 
-// 📋 Route GET : /api/projets
 app.get('/api/projets', (req, res) => {
   const query = 'SELECT * FROM Projets';
 
@@ -180,23 +183,48 @@ app.get('/api/projets', (req, res) => {
   });
 });
 
-// 📋 Route GET : /api/projets/:id
 app.get('/api/projets/:id', (req, res) => {
   const { id } = req.params;
-  const query = 'SELECT * FROM Projets WHERE IdProjet = ?';
+  const query = `
+    SELECT p.*, 
+           GROUP_CONCAT(DISTINCT CONCAT(per.Prenom, ' ', per.Nom)) as membres,
+           GROUP_CONCAT(DISTINCT m.Titre) as missions
+    FROM Projets p
+    LEFT JOIN ProjetsPersonnel pp ON p.IdProjet = pp.IdProjet
+    LEFT JOIN Personnel per ON pp.IdPersonnel = per.Identifiant
+    LEFT JOIN Missions m ON p.IdProjet = m.IdProjet
+    WHERE p.IdProjet = ?
+    GROUP BY p.IdProjet`;
+
   db.execute(query, [id], (err, results) => {
     if (err) {
       console.error('❌ Erreur lors de la récupération du projet :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
-    res.status(200).json(results[0]);
+    
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, error: 'Projet non trouvé.' });
+    }
+
+    const projet = results[0];
+    projet.membres = projet.membres ? projet.membres.split(',') : [];
+    projet.missions = projet.missions ? projet.missions.split(',') : [];
+    
+    res.status(200).json(projet);
   });
 });
 
-// ➕ Route POST : /api/projets
 app.post('/api/projets', (req, res) => {
   const { NomProjet, Description, CreateurId } = req.body;
-  const query = 'INSERT INTO Projets (NomProjet, Description, CreateurId) VALUES (?, ?, ?)';
+
+  if (!NomProjet || !Description || !CreateurId) {
+    return res.status(400).json({
+      success: false,
+      error: 'Nom du projet, description et ID du créateur obligatoires.'
+    });
+  }
+
+  const query = 'INSERT INTO Projets (NomProjet, Description, CreateurId, DateCreation) VALUES (?, ?, ?, CURDATE())';
   db.execute(query, [NomProjet, Description, CreateurId], (err, result) => {
     if (err) {
       console.error('❌ Erreur lors de la création du projet :', err);
@@ -206,10 +234,8 @@ app.post('/api/projets', (req, res) => {
   });
 });
 
-// 🗑️ Route DELETE : /api/projets/:id
 app.delete('/api/projets/:id', (req, res) => {
   const { id } = req.params;
-  console.log('🛠️ ID reçu pour suppression :', id);
   const query = 'DELETE FROM Projets WHERE IdProjet = ?';
   db.execute(query, [id], (err) => {
     if (err) {
@@ -220,16 +246,14 @@ app.delete('/api/projets/:id', (req, res) => {
   });
 });
 
-// ➕ Route POST : /api/projets/:id/membres
 app.post('/api/projets/:id/membres', (req, res) => {
   const { id } = req.params;
   const { idPersonnel, createurId } = req.body;
 
-  // Vérification stricte des paramètres
-  if (typeof idPersonnel === 'undefined' || typeof createurId === 'undefined' || !idPersonnel || !createurId) {
+  if (!idPersonnel || !createurId) {
     return res.status(400).json({
       success: false,
-      error: 'ID du membre et ID du créateur sont obligatoires et ne peuvent pas être undefined.'
+      error: 'ID du membre et ID du créateur sont obligatoires.'
     });
   }
 
@@ -246,19 +270,19 @@ app.post('/api/projets/:id/membres', (req, res) => {
     }
 
     const addMemberQuery = 'INSERT INTO ProjetsPersonnel (IdProjet, IdPersonnel) VALUES (?, ?)';
-    db.execute(addMemberQuery, [id, idPersonnel], (err, result) => {
+    db.execute(addMemberQuery, [id, idPersonnel], (err) => {
       if (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+          return res.status(409).json({ success: false, error: 'Le membre est déjà dans ce projet.' });
+        }
         console.error('❌ Erreur lors de l\'ajout du membre :', err);
         return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
       }
-
-      console.log(`✅ Membre ${idPersonnel} ajouté au projet ${id}`);
       res.status(200).json({ success: true, message: 'Membre ajouté avec succès.' });
     });
   });
 });
 
-// 🗑️ Route DELETE : /api/projets/:id/membres/:idPersonnel
 app.delete('/api/projets/:id/membres/:idPersonnel', (req, res) => {
   const { id, idPersonnel } = req.params;
   const { createurId } = req.body;
@@ -282,148 +306,16 @@ app.delete('/api/projets/:id/membres/:idPersonnel', (req, res) => {
       return res.status(403).json({ success: false, error: 'Seul le créateur peut supprimer des membres.' });
     }
 
-    const removeMemberQuery = 'DELETE FROM ProjetsPersonnel WHERE IdProjet = ? AND IdPersonnel = ?'; // Correction ici
-    db.execute(removeMemberQuery, [id, idPersonnel], (err, result) => {
+    const removeMemberQuery = 'DELETE FROM ProjetsPersonnel WHERE IdProjet = ? AND IdPersonnel = ?';
+    db.execute(removeMemberQuery, [id, idPersonnel], (err) => {
       if (err) {
         console.error('❌ Erreur lors de la suppression du membre :', err);
         return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
       }
-
-      console.log(`✅ Membre ${idPersonnel} supprimé du projet ${id}`);
       res.status(200).json({ success: true, message: 'Membre supprimé avec succès.' });
     });
   });
 });
-// ➕ Route POST : /api/projets/:id/personnel
-app.post('/api/projets/:id/personnel', (req, res) => {
-  const { id } = req.params;
-  const { IdentifiantPersonnel } = req.body;
-
-  // Vérifier que l’utilisateur est bien créateur du projet
-  const checkCreatorQuery = 'SELECT CreateurId FROM Projets WHERE IdProjet = ?';
-  db.execute(checkCreatorQuery, [id], (err, results) => {
-    if (err) {
-      console.error('❌ Erreur lors de la vérification du créateur :', err);
-      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
-    }
-
-    if (results.length === 0 || results[0].CreateurId !== IdentifiantPersonnel) {
-      console.log(`❌ Tentative non autorisée d\'ajout de membre par l\'utilisateur ${IdentifiantPersonnel}`);
-      return res.status(403).json({ success: false, error: 'Seul le créateur peut ajouter des membres.' });
-    }
-
-    const insertQuery = 'INSERT INTO ProjetsPersonnel (IdProjet, IdentifiantPersonnel) VALUES (?, ?)';
-    db.execute(insertQuery, [id, IdentifiantPersonnel], (err) => {
-      if (err) {
-        if (err.code === 'ER_DUP_ENTRY') {
-          console.warn('⚠️ Ce membre est déjà dans le projet.');
-          return res.status(409).json({ success: false, error: 'Le membre est déjà dans ce projet.' });
-        }
-        console.error('❌ Erreur lors de l\'ajout du membre au projet :', err);
-        return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
-      }
-      res.status(201).json({ success: true });
-    });
-  });
-});
-
-// 🗑️ Route DELETE : /api/projets/:id/personnel/:idPersonnel
-app.delete('/api/projets/:id/personnel/:idPersonnel', (req, res) => {
-  const { id, idPersonnel } = req.params;
-  const query = 'DELETE FROM ProjetsPersonnel WHERE IdProjet = ? AND IdentifiantPersonnel = ?';
-  db.execute(query, [id, idPersonnel], (err) => {
-    if (err) {
-      console.error('❌ Erreur lors de la suppression du membre du projet :', err);
-      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
-    }
-    res.status(200).json({ success: true });
-  });
-});
-
-// =============================================================
-// 🧩 MISSIONS COMPONENT
-// =============================================================
-
-// 📋 Route GET : /api/missions
-app.get('/api/missions', (req, res) => {
-  const query = 'SELECT * FROM Missions';
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('❌ Erreur lors de la récupération des missions :', err);
-      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
-    }
-    res.status(200).json(results);
-  });
-});
-
-// 📋 Route GET : /api/missions/:id/personnel
-app.get('/api/missions/:id/personnel', (req, res) => {
-  const { id } = req.params;
-  const query = `
-    SELECT p.Identifiant, p.Prenom, p.Nom, p.User
-    FROM Personnel p
-    INNER JOIN MissionsPersonnel mp ON p.Identifiant = mp.IdPersonnel
-    WHERE mp.IdMission = ?`;
-  db.execute(query, [id], (err, results) => {
-    if (err) {
-      console.error('❌ Erreur lors de la récupération du personnel de la mission :', err);
-      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
-    }
-    res.status(200).json(results);
-  });
-});
-
-// ➕ Route POST : /api/missions
-app.post('/api/missions', (req, res) => {
-  const { NomMission, IdProjet } = req.body;
-  const query = 'INSERT INTO Missions (NomMission, IdProjet) VALUES (?, ?)';
-  db.execute(query, [NomMission, IdProjet], (err, result) => {
-    if (err) {
-      console.error('❌ Erreur lors de la création de la mission :', err);
-      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
-    }
-    res.status(201).json({ success: true, id: result.insertId });
-  });
-});
-
-// ➕ Route POST : /api/missions/:id/assign
-app.post('/api/missions/:id/assign', (req, res) => {
-  const { id } = req.params;
-  const { IdPersonnel } = req.body;
-  const query = 'INSERT INTO MissionsPersonnel (IdMission, IdPersonnel) VALUES (?, ?)';
-  db.execute(query, [id, IdPersonnel], (err) => {
-    if (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        console.warn('⚠️ Ce membre est déjà assigné à la mission.');
-        return res.status(409).json({ success: false, error: 'Ce membre est déjà assigné à cette mission.' });
-      }
-      console.error('❌ Erreur lors de l\'assignation de la mission :', err);
-      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
-    }
-    res.status(201).json({ success: true });
-  });
-});
-
-// ➕ Route POST : /api/missions/:id/competences
-app.post('/api/missions/:id/competences', (req, res) => {
-  const { id } = req.params;
-  const { idCompetence } = req.body;
-  const query = 'INSERT INTO CompetencesMissions (IdMission, IdCompetence) VALUES (?, ?)';
-  db.execute(query, [id, idCompetence], (err) => {
-    if (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        console.warn(`⚠️ La compétence ${idCompetence} est déjà assignée à la mission ${id}.`);
-        return res.status(409).json({ success: false, error: 'La compétence est déjà assignée à cette mission.' });
-      }
-      console.error('❌ Erreur lors de l’affectation de la compétence :', err);
-      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
-    }
-
-    res.status(201).json({ success: true, message: 'Compétence assignée avec succès.' });
-  });
-});
-
-// 📋 Route GET : /api/projets/:id/membres
 
 app.get('/api/projets/:id/membres', (req, res) => {
   const { id } = req.params;
@@ -434,8 +326,8 @@ app.get('/api/projets/:id/membres', (req, res) => {
     LEFT JOIN CompetencesPersonnel cp ON p.Identifiant = cp.IdPersonnel
     LEFT JOIN Competences c ON cp.IdCompetence = c.IdentifiantC
     WHERE pp.IdProjet = ?
-    GROUP BY p.Identifiant
-  `;
+    GROUP BY p.Identifiant`;
+
   db.execute(query, [id], (err, results) => {
     if (err) {
       console.error('❌ Erreur lors de la récupération des membres :', err);
@@ -444,16 +336,196 @@ app.get('/api/projets/:id/membres', (req, res) => {
     res.status(200).json(results);
   });
 });
-// 📋 Route GET : /api/projets/:id/missions
-app.get('/api/projets/:id/missions', (req, res) => {
-  const { id } = req.params;
-  const query = 'SELECT * FROM Missions WHERE IdProjet = ?';
-  db.execute(query, [id], (err, results) => {
+
+// =============================================================
+// 🧩 MISSIONS COMPONENT
+// =============================================================
+
+app.get('/api/missions', (req, res) => {
+  const query = `
+    SELECT m.*, p.NomProjet
+    FROM Missions m
+    JOIN Projets p ON m.IdProjet = p.IdProjet
+    ORDER BY m.DateCreation DESC`;
+
+  db.query(query, (err, results) => {
     if (err) {
-      console.error('❌ Erreur lors de la récupération des missions du projet :', err);
+      console.error('❌ Erreur lors de la récupération des missions :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
     res.status(200).json(results);
+  });
+});
+
+app.get('/api/missions/:id/personnel', (req, res) => {
+  const { id } = req.params;
+  const query = `
+    SELECT p.Identifiant, p.Prenom, p.Nom, p.User
+    FROM Personnel p
+    INNER JOIN MissionsPersonnel mp ON p.Identifiant = mp.IdPersonnel
+    WHERE mp.IdMission = ?`;
+
+  db.execute(query, [id], (err, results) => {
+    if (err) {
+      console.error('❌ Erreur lors de la récupération du personnel de la mission :', err);
+      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+app.post('/api/missions', (req, res) => {
+  const { NomMission, IdProjet, Description } = req.body;
+
+  if (!NomMission || !IdProjet) {
+    return res.status(400).json({
+      success: false,
+      error: 'Nom de la mission et ID du projet sont obligatoires.'
+    });
+  }
+
+  const query = 'INSERT INTO Missions (NomMission, IdProjet, Description, DateCreation) VALUES (?, ?, ?, CURDATE())';
+  db.execute(query, [NomMission, IdProjet, Description], (err, result) => {
+    if (err) {
+      console.error('❌ Erreur lors de la création de la mission :', err);
+      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+    }
+    res.status(201).json({ success: true, id: result.insertId });
+  });
+});
+
+app.post('/api/missions/:id/assign', (req, res) => {
+  const { id } = req.params;
+  const { IdPersonnel } = req.body;
+
+  if (!IdPersonnel) {
+    return res.status(400).json({ success: false, error: 'ID du personnel est requis.' });
+  }
+
+  const query = 'INSERT INTO MissionsPersonnel (IdMission, IdPersonnel) VALUES (?, ?)';
+  db.execute(query, [id, IdPersonnel], (err) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.status(409).json({ success: false, error: 'Le membre est déjà assigné à cette mission.' });
+      }
+      console.error('❌ Erreur lors de l\'assignation de la mission :', err);
+      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+    }
+    res.status(201).json({ success: true });
+  });
+});
+
+app.post('/api/missions/:id/competences', (req, res) => {
+  const { id } = req.params;
+  const { idCompetence } = req.body;
+
+  if (!idCompetence) {
+    return res.status(400).json({ success: false, error: 'ID de la compétence est requis.' });
+  }
+
+  const query = 'INSERT INTO CompetencesMissions (IdMission, IdCompetence) VALUES (?, ?)';
+  db.execute(query, [id, idCompetence], (err) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.status(409).json({ success: false, error: 'La compétence est déjà assignée à cette mission.' });
+      }
+      console.error('❌ Erreur lors de l\'affectation de la compétence :', err);
+      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+    }
+    res.status(201).json({ success: true });
+  });
+});
+
+app.get('/api/projets/:id/missions', (req, res) => {
+  const { id } = req.params;
+  console.log(`📋 Tentative de récupération des missions pour le projet ${id}`);
+
+  // D'abord, vérifions si le projet existe
+  const checkProjectQuery = 'SELECT IdProjet FROM Projets WHERE IdProjet = ?';
+  db.execute(checkProjectQuery, [id], (err, projectResults) => {
+    if (err) {
+      console.error('❌ Erreur lors de la vérification du projet :', err);
+      return res.status(500).json({ success: false, error: 'Erreur lors de la vérification du projet.' });
+    }
+
+    if (projectResults.length === 0) {
+      console.log(`❌ Projet ${id} non trouvé`);
+      return res.status(404).json({ success: false, error: 'Projet non trouvé.' });
+    }
+
+    // Ensuite, essayons de récupérer les missions avec les membres
+    const query = `
+      SELECT m.*, 
+             GROUP_CONCAT(DISTINCT p.Prenom, ' ', p.Nom) as membres_assignes
+      FROM Missions m
+      LEFT JOIN MissionsPersonnel mp ON m.IdMission = mp.IdMission
+      LEFT JOIN Personnel p ON mp.IdPersonnel = p.Identifiant
+      WHERE m.IdProjet = ?
+      GROUP BY m.IdMission
+      ORDER BY m.DateCreation DESC`;
+
+    console.log('🔍 Exécution de la requête pour les missions...');
+    db.execute(query, [id], (err, results) => {
+      if (err) {
+        console.error('❌ Erreur détaillée lors de la récupération des missions :', {
+          code: err.code,
+          errno: err.errno,
+          sqlState: err.sqlState,
+          sqlMessage: err.sqlMessage
+        });
+
+        // Si l'erreur est due à une table manquante, on essaie une requête plus simple
+        if (err.code === 'ER_NO_SUCH_TABLE') {
+          console.log('⚠️ Table manquante détectée, tentative avec une requête simplifiée...');
+          const simpleQuery = 'SELECT * FROM Missions WHERE IdProjet = ? ORDER BY DateCreation DESC';
+          db.execute(simpleQuery, [id], (err2, results2) => {
+            if (err2) {
+              console.error('❌ Erreur lors de la requête simplifiée :', err2);
+              return res.status(500).json({ 
+                success: false, 
+                error: 'Erreur lors de la récupération des missions.',
+                details: err2.message
+              });
+            }
+            console.log(`✅ ${results2.length} missions récupérées avec succès (requête simplifiée)`);
+            const missions = results2.map(mission => ({
+              ...mission,
+              membres_assignes: [],
+              competences_requises: []
+            }));
+            res.status(200).json(missions);
+          });
+          return;
+        }
+
+        // Pour toute autre erreur, on essaie une requête encore plus basique
+        console.log('⚠️ Tentative avec une requête de base...');
+        const basicQuery = 'SELECT * FROM Missions WHERE IdProjet = ?';
+        db.execute(basicQuery, [id], (err3, results3) => {
+          if (err3) {
+            console.error('❌ Erreur critique : Impossible de récupérer les missions :', err3);
+            return res.status(500).json({ 
+              success: false, 
+              error: 'Erreur critique lors de la récupération des missions.',
+              details: err3.message
+            });
+          }
+          console.log(`✅ ${results3.length} missions récupérées (requête de base)`);
+          res.status(200).json(results3);
+        });
+        return;
+      }
+      
+      console.log(`✅ ${results.length} missions récupérées avec succès`);
+      // Formater les résultats
+      const missions = results.map(mission => ({
+        ...mission,
+        membres_assignes: mission.membres_assignes ? mission.membres_assignes.split(',') : [],
+        competences_requises: []
+      }));
+      
+      res.status(200).json(missions);
+    });
   });
 });
 
@@ -463,4 +535,4 @@ app.get('/api/projets/:id/missions', (req, res) => {
 
 app.listen(port, () => {
   console.log(`✅ Serveur en cours d'exécution sur : http://localhost:${port}`);
-});
+}); 
