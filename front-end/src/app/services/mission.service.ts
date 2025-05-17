@@ -2,13 +2,20 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+export interface Membre {
+  Identifiant: number;
+  Prenom: string;
+  Nom: string;
+  User: string;
+}
+
 export interface Mission {
   IdMission: number;
   NomMission: string;
   Description?: string;
   IdProjet: number;
   DateCreation: string;
-  membres_assignes?: string[];
+  membres_assignes?: Membre[];
   competences_requises?: string[];
 }
 

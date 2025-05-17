@@ -1,40 +1,86 @@
-<div class="mission-list">
-  <div *ngIf="errorMessage" class="alert alert-danger">
+<!-- Conteneur principal -->
+<section class="mission-list">
+  <!-- Message d'erreur -->
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
     {{ errorMessage }}
   </div>
 
-  <div *ngIf="!errorMessage">
-    <div *ngFor="let mission of missions" class="mission-card">
-      <h3>{{ mission.NomMission }}</h3>
-      <p *ngIf="mission.Description">{{ mission.Description }}</p>
-      
-      <div class="mission-details">
-        <p><strong>Date de création :</strong> {{ mission.DateCreation | date:'dd/MM/yyyy' }}</p>
-        
-        <div *ngIf="mission.membres_assignes?.length" class="mission-members">
-          <h4>Membres assignés :</h4>
-          <ul>
-            <li *ngFor="let membre of mission.membres_assignes">{{ membre }}</li>
-          </ul>
-        </div>
-
-        <div *ngIf="mission.competences_requises?.length" class="mission-skills">
-          <h4>Compétences requises :</h4>
-          <ul>
-            <li *ngFor="let competence of mission.competences_requises">{{ competence }}</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="mission-actions">
-        <button class="btn btn-danger" (click)="deleteMission(mission.IdMission)">
-          Supprimer
-        </button>
-      </div>
+  <!-- Liste des missions -->
+  <div *ngIf="!errorMessage" class="missions-container">
+    <!-- Message si aucune mission -->
+    <div *ngIf="missions.length === 0" class="no-missions">
+      <p>Aucune mission n'est actuellement assignée à ce projet.</p>
     </div>
 
-    <div *ngIf="missions.length === 0" class="no-missions">
-      Aucune mission n'est actuellement assignée à ce projet.
+    <!-- Liste des missions -->
+    <div *ngIf="missions.length > 0" class="missions-grid">
+      <article *ngFor="let mission of missions" class="mission-card">
+        <!-- En-tête de la mission -->
+        <header class="mission-header">
+          <h3 class="mission-title">{{ mission.NomMission }}</h3>
+          <p *ngIf="mission.Description" class="mission-description">
+            {{ mission.Description }}
+          </p>
+        </header>
+
+        <!-- Détails de la mission -->
+        <div class="mission-content">
+          <!-- Informations générales -->
+          <div class="mission-info">
+            <p class="mission-date">
+              <i class="fas fa-calendar"></i>
+              <strong>Date de création :</strong> 
+              {{ mission.DateCreation | date:'dd/MM/yyyy' }}
+            </p>
+          </div>
+
+          <!-- Membres assignés -->
+          <section class="mission-section">
+            <h4 class="section-title">Assigner un membre</h4>
+            <div class="mission-members">
+              <app-mission-assign 
+                *ngIf="projectId"
+                [selectedMissionId]="mission.IdMission" 
+                [projectId]="projectId!"
+                class="mission-assign-component"
+                (missionAssigned)="refreshMissions()">
+              </app-mission-assign>
+            </div>
+          </section>
+
+          <!-- Liste des membres déjà assignés -->
+          <section *ngIf="mission.membres_assignes?.length" class="mission-section">
+            <h4 class="section-title">Membres assignés</h4>
+            <ul class="members-list">
+              <li *ngFor="let membre of mission.membres_assignes" class="member-item">
+                {{ membre.Prenom }} {{ membre.Nom }}
+                <small class="text-muted">({{ membre.User }})</small>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Compétences requises -->
+          <section *ngIf="mission.competences_requises?.length" class="mission-section">
+            <h4 class="section-title">Compétences requises</h4>
+            <ul class="skills-list">
+              <li *ngFor="let competence of mission.competences_requises" class="skill-item">
+                {{ competence }}
+              </li>
+            </ul>
+          </section>
+        </div>
+
+        <!-- Actions -->
+        <footer class="mission-footer">
+          <button 
+            class="btn btn-danger" 
+            (click)="deleteMission(mission.IdMission)"
+            aria-label="Supprimer la mission">
+            <i class="fas fa-trash"></i>
+            Supprimer
+          </button>
+        </footer>
+      </article>
     </div>
   </div>
-</div>
+</section>

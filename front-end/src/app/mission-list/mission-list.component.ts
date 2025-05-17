@@ -4,41 +4,47 @@ import { HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { take } from 'rxjs/operators';
 import { MissionService, Mission } from '../services/mission.service';
+import { MissionAssignComponent } from '../mission-assign/mission-assign.component';
 
 // VOIR CETTE PAGE SUR LE SITE http://localhost:4200/projets/1/missions
 
 @Component({
   selector: 'app-mission-list',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule, HttpClientModule, MissionAssignComponent],
   templateUrl: './mission-list.component.html',
   styleUrls: ['./mission-list.component.css']
 })
 export class MissionListComponent implements OnInit {
-  @Input() projectId: number | null = null;
+  @Input() projectId: number | undefined;
   @Output() missionCree = new EventEmitter<void>();
   @Output() missionsUpdated = new EventEmitter<Mission[]>();
 
   missions: Mission[] = [];
   errorMessage: string | null = null;
+  isLoading: boolean = false;
 
   constructor(
-    private missionService: MissionService,
-    private route: ActivatedRoute
+    private readonly missionService: MissionService,
+    private readonly route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    // Si projectId n'est pas fourni en Input, on essaie de le récupérer de la route
+    this.initializeProjectId();
+  }
+
+  private initializeProjectId(): void {
     if (!this.projectId) {
       const id = this.route.snapshot?.paramMap.get('id');
-      if (id) {
+      if (id && !isNaN(Number(id))) {
         this.projectId = Number(id);
+        this.loadMissions();
       } else {
-        this.errorMessage = 'ID du projet manquant. Veuillez accéder à cette page via un projet valide.';
-        return;
+        this.errorMessage = 'ID du projet invalide ou manquant. Veuillez accéder à cette page via un projet valide.';
       }
+    } else {
+      this.loadMissions();
     }
-    this.loadMissions();
   }
 
   loadMissions(): void {
@@ -47,44 +53,57 @@ export class MissionListComponent implements OnInit {
       return;
     }
 
+    this.isLoading = true;
+    this.errorMessage = null;
+
     this.missionService.getMissionsByProjet(this.projectId)
       .pipe(take(1))
       .subscribe({
         next: (data: Mission[]) => {
           this.missions = data;
-          this.missionsUpdated.emit(data); // Émet les missions mises à jour vers le composant parent
+          this.missionsUpdated.emit(data);
+          this.isLoading = false;
           console.log('✅ Missions chargées', this.missions);
         },
         error: (error: Error) => {
           console.error('❌ Erreur lors du chargement des missions', error);
           this.errorMessage = 'Impossible de charger les missions. Veuillez réessayer plus tard.';
+          this.isLoading = false;
+          this.missions = [];
         }
       });
   }
 
-  // Méthode pour émettre l'événement de création de mission
   onMissionCreated(): void {
     this.missionCree.emit();
-    this.loadMissions(); // Recharger la liste des missions
+    this.loadMissions();
   }
 
-  // Méthode publique pour rafraîchir les missions depuis le composant parent
   refreshMissions(): void {
     this.loadMissions();
   }
 
   deleteMission(id: number): void {
-    if (!this.projectId) return;
+    if (!this.projectId || !id) {
+      console.error('ID de projet ou de mission invalide');
+      return;
+    }
   
-    const confirmDelete = confirm('Supprimer cette mission ?');
+    const confirmDelete = confirm('Êtes-vous sûr de vouloir supprimer cette mission ?');
     if (confirmDelete) {
+      this.isLoading = true;
       this.missionService.deleteMission(this.projectId, id)
         .subscribe({
-          next: () => this.loadMissions(),
-          error: (err) => console.error("Erreur de suppression :", err)
+          next: () => {
+            this.loadMissions();
+            this.isLoading = false;
+          },
+          error: (error: Error) => {
+            console.error("Erreur lors de la suppression de la mission:", error);
+            this.errorMessage = 'Impossible de supprimer la mission. Veuillez réessayer plus tard.';
+            this.isLoading = false;
+          }
         });
     }
   }
-
-
 }

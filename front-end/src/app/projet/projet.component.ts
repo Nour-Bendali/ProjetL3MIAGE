@@ -7,16 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import { Location } from '@angular/common';
 import { MissionFormComponent } from '../mission-form/mission-form.component';
 import { MissionListComponent } from '../mission-list/mission-list.component';
-
-interface Mission {
-  IdMission: number;
-  NomMission: string;
-  Description?: string;
-  IdProjet: number;
-  DateCreation: string;
-  membres_assignes?: string[];
-  competences_requises?: string[];
-}
+import { Mission } from '../services/mission.service';
 
 interface Projet {
   IdProjet: number;
