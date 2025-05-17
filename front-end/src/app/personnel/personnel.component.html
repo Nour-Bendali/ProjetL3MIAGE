@@ -1,159 +1,57 @@
-<!-- src/app/personnel/personnel.component.html -->
-
 <div class="container">
-  <!-- Bouton de retour -->
-  <div class="mb-4">
-    <button class="btn btn-secondary" (click)="goBack()">
-      <i class="bi bi-arrow-left"></i> Retour
-    </button>
-  </div>
+
+  <button class="btn btn-secondary mb-3" (click)="goBack()">Retour</button>
 
   <h2>Gestion du Personnel</h2>
 
-  <!-- Message d'erreur ou de succès -->
-  <div *ngIf="message" class="alert" [ngClass]="{'alert-success': message.includes('succès'), 'alert-danger': !message.includes('succès')}">
-    {{ message }}
+  <!-- Ajouter un membre -->
+  <h4>Ajouter un membre au projet</h4>
+  <div class="input-group mb-4">
+    <select
+      class="form-select"
+      name="availableSelect"
+      [(ngModel)]="selectedAvailablePersonnelId"
+    >
+      <option [ngValue]="null">Sélectionnez un membre</option>
+      <option
+        *ngFor="let p of availablePersonnel"
+        [ngValue]="p.Identifiant"
+      >
+        {{ p.Prenom }} {{ p.Nom }}
+      </option>
+    </select>
+    <!-- [disabled]="!isCreator || !selectedAvailablePersonnelId" -->
+    <button
+      class="btn btn-primary"
+      (click)="addMember()"
+    >
+      Ajouter
+    </button>
   </div>
 
-  <!-- Champs de recherche -->
-  <div class="row mb-3">
-    <div class="col-md-6">
-      <label for="search" class="form-label">Rechercher par nom ou email :</label>
-      <input 
-        type="text" 
-        id="search" 
-        class="form-control" 
-        placeholder="Rechercher par nom ou email" 
-        [(ngModel)]="searchQuery" 
-        (input)="filterPersonnel()">
-    </div>
-    <div class="col-md-6">
-      <label for="competenceSearch" class="form-label">Rechercher par compétence :</label>
-      <input 
-        type="text" 
-        id="competenceSearch" 
-        class="form-control" 
-        placeholder="Rechercher par compétence" 
-        [(ngModel)]="competenceQuery" 
-        (input)="filterPersonnel()">
-    </div>
+  <!-- Supprimer un membre -->
+  <h4>Supprimer un membre du projet</h4>
+  <div class="input-group mb-4">
+    <select
+      class="form-select"
+      name="assignedSelect"
+      [(ngModel)]="selectedAssignedPersonnelId"
+    >
+      <option [ngValue]="null">Sélectionnez un membre</option>
+      <option
+        *ngFor="let p of assignedPersonnel"
+        [ngValue]="p.Identifiant"
+      >
+        {{ p.Prenom }} {{ p.Nom }}
+      </option>
+    </select>
+    <!-- [disabled]="!isCreator || !selectedAssignedPersonnelId" -->
+    <button
+      class="btn btn-danger"
+      (click)="removeMember()"
+    >
+      Supprimer
+    </button>
   </div>
 
-  <!-- Sélection et ajout d'un membre -->
-  <div class="mb-4">
-    <h3>Ajouter un membre au projet</h3>
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label for="personnelSelect" class="form-label">Sélectionner un membre :</label>
-        <select 
-          id="personnelSelect" 
-          class="form-control" 
-          [(ngModel)]="selectedPersonnelId" 
-          [disabled]="!isCreator">
-          <option [ngValue]="null">Sélectionnez un membre</option>
-          <option *ngFor="let person of allPersonnel" [ngValue]="person.Identifiant">
-            {{ person.Prenom }} {{ person.Nom }} ({{ person.User }})
-          </option>
-        </select>
-      </div>
-      <div class="col-md-2 mb-3">
-        <button 
-          type="button" 
-          class="btn btn-primary mt-4" 
-          (click)="addSelectedPersonnel()" 
-          [disabled]="!isCreator || !selectedPersonnelId">
-          Ajouter
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Liste des membres -->
-  <div>
-    <h3>Liste des membres</h3>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Prénom</th>
-          <th>Nom</th>
-          <th>Email</th>
-          <th>Compétences</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let person of filteredPersonnel">
-          <td>{{ person.Identifiant }}</td>
-          <td>
-            <span *ngIf="!editPersonnel || editPersonnel.Identifiant !== person.Identifiant">
-              {{ person.Prenom }}
-            </span>
-            <input 
-              *ngIf="editPersonnel && editPersonnel.Identifiant === person.Identifiant"
-              type="text" 
-              class="form-control" 
-              [(ngModel)]="editPersonnel.Prenom" 
-              name="editPrenom">
-          </td>
-          <td>
-            <span *ngIf="!editPersonnel || editPersonnel.Identifiant !== person.Identifiant">
-              {{ person.Nom }}
-            </span>
-            <input 
-              *ngIf="editPersonnel && editPersonnel.Identifiant === person.Identifiant"
-              type="text" 
-              class="form-control" 
-              [(ngModel)]="editPersonnel.Nom" 
-              name="editNom">
-          </td>
-          <td>
-            <span *ngIf="!editPersonnel || editPersonnel.Identifiant !== person.Identifiant">
-              {{ person.User }}
-            </span>
-            <input 
-              *ngIf="editPersonnel && editPersonnel.Identifiant === person.Identifiant"
-              type="text" 
-              class="form-control" 
-              [(ngModel)]="editPersonnel.User" 
-              name="editEmail">
-          </td>
-          <td>
-            <span *ngIf="!editPersonnel || editPersonnel.Identifiant !== person.Identifiant">
-              {{ person.Competences || 'Aucune' }}
-            </span>
-            <span *ngIf="editPersonnel && editPersonnel.Identifiant === person.Identifiant">
-              (Modification des compétences non disponible)
-            </span>
-          </td>
-          <td>
-            <button 
-              *ngIf="!editPersonnel || editPersonnel.Identifiant !== person.Identifiant"
-              class="btn btn-warning btn-sm me-2" 
-              (click)="startEdit(person)">
-              Modifier
-            </button>
-            <button 
-              *ngIf="editPersonnel && editPersonnel.Identifiant === person.Identifiant"
-              class="btn btn-success btn-sm me-2" 
-              (click)="saveEdit()">
-              Enregistrer
-            </button>
-            <button 
-              *ngIf="editPersonnel && editPersonnel.Identifiant === person.Identifiant"
-              class="btn btn-secondary btn-sm me-2" 
-              (click)="cancelEdit()">
-              Annuler
-            </button>
-            <button 
-              class="btn btn-danger btn-sm" 
-              (click)="deletePersonnel(person.Identifiant)"
-              [disabled]="!isCreator">
-              Supprimer
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
 </div>

@@ -1,56 +1,52 @@
-// src/app/personnel/personnel.service.ts
-
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
+export interface Personnel {
+  Identifiant: number;
+  Prenom:      string;
+  Nom:         string;
+  User:        string;
+  competences?: { Competence: string }[];
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class PersonnelService {
-  private apiUrl = 'http://localhost:3000/api';
-  private personnelUrl = `${this.apiUrl}/personnel`;
+  private apiPersonnel         = 'http://localhost:3000/api/personnel';
+  private apiProjets           = 'http://localhost:3000/api/projets';
+  private apiProjetsPersonnel  = 'http://localhost:3000/api/projets-personnel';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  getAllPersonnel(): Observable<any> {
-    return this.http.get(`${this.personnelUrl}`);
+  /** 1) Lista global de usuarios */
+  getAllPersonnel(): Observable<Personnel[]> {
+    return this.http.get<Personnel[]>(this.apiPersonnel);
   }
 
-  createPersonnel(personnel: any): Observable<any> {
-    return this.http.post(`${this.personnelUrl}`, personnel);
+  /** 2) Obtiene el proyecto (para comprobar creador) */
+  getProjet(idProjet: number): Observable<{ CreateurId: number }> {
+    return this.http.get<{ CreateurId: number }>(`${this.apiProjets}/${idProjet}`);
   }
 
-  deletePersonnel(id: number): Observable<any> {
-    return this.http.delete(`${this.personnelUrl}/${id}`);
+  /** 3) Lista miembros asignados al proyecto */
+  getPersonnelProjet(idProjet: number): Observable<Personnel[]> {
+    return this.http.get<Personnel[]>(`${this.apiProjetsPersonnel}/${idProjet}`);
   }
 
-  getProjet(projetId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/projets/${projetId}`);
+  /** 4) Añade un miembro al proyecto */
+  ajouterPersonneAuProjet(idProjet: number, idPersonnel: number): Observable<void> {
+    return this.http.post<void>(
+      this.apiProjetsPersonnel,
+      { IdProjet: idProjet, IdPersonnel: idPersonnel }
+    );
   }
 
-  ajouterPersonneAuProjet(projetId: number, personnelId: number): Observable<any> {
-    const createurId = localStorage.getItem('userId');
-    if (!createurId) {
-      throw new Error('Utilisateur non connecté');
-    }
-    return this.http.post(`${this.apiUrl}/projets/${projetId}/membres`, {
-      idPersonnel: personnelId,
-      createurId: +createurId
-    });
-  }
-
-  supprimerPersonneDuProjet(projetId: number, personnelId: number): Observable<any> {
-    const createurId = localStorage.getItem('userId');
-    if (!createurId) {
-      throw new Error('Utilisateur non connecté');
-    }
-    return this.http.delete(`${this.apiUrl}/projets/${projetId}/membres/${personnelId}`, {
-      body: { createurId: +createurId }
-    });
-  }
-
-  getPersonnelProjet(projetId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/projets/${projetId}/membres`);
+  /** 5) Elimina un miembro del proyecto */
+  supprimerPersonneDuProjet(idProjet: number, idPersonnel: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiProjetsPersonnel}/${idProjet}/${idPersonnel}`
+    );
   }
 }
