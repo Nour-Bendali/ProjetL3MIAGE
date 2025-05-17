@@ -1,9 +1,16 @@
 <!-- src/app/personnel/personnel.component.html -->
 
 <div class="container">
+  <!-- Bouton de retour -->
+  <div class="mb-4">
+    <button class="btn btn-secondary" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i> Retour
+    </button>
+  </div>
+
   <h2>Gestion du Personnel</h2>
 
-  <!-- Message d’erreur ou de succès -->
+  <!-- Message d'erreur ou de succès -->
   <div *ngIf="message" class="alert" [ngClass]="{'alert-success': message.includes('succès'), 'alert-danger': !message.includes('succès')}">
     {{ message }}
   </div>
@@ -43,8 +50,8 @@
           class="form-control" 
           [(ngModel)]="selectedPersonnelId" 
           [disabled]="!isCreator">
-          <option value="null">Sélectionnez un membre</option>
-          <option *ngFor="let person of allPersonnel" [value]="person.Identifiant">
+          <option [ngValue]="null">Sélectionnez un membre</option>
+          <option *ngFor="let person of allPersonnel" [ngValue]="person.Identifiant">
             {{ person.Prenom }} {{ person.Nom }} ({{ person.User }})
           </option>
         </select>

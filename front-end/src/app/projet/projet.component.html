@@ -8,22 +8,19 @@
   </div>
 
   <div *ngIf="projet && !errorMessage; else loading">
-    <h3>{{ projet.nomProjet }}</h3>
-    <p><strong>Description :</strong> {{ projet.description }}</p>
+    <h3>{{ projet.NomProjet }}</h3>
+    <p><strong>Description :</strong> {{ projet.Description }}</p>
 
     <h4>Membres associés</h4>
     <ul>
-      <li *ngFor="let membre of projet.membres">
-        {{ membre }}
-      </li>
     </ul>
 
-    <h4>Missions du projet</h4>
-    <ul>
-      <li *ngFor="let mission of projet.missions">
-        {{ mission.Titre }} - {{ mission.Description }}
-      </li>
-    </ul>
+      <h4>Missions du projet</h4>
+<app-mission-list 
+  [projectId]="projectId"
+  (missionCree)="refreshMissions()"
+  (missionsUpdated)="onMissionsUpdated($event)">
+</app-mission-list>
 
     <h4>Ajouter une mission</h4>
     <app-mission-form 

@@ -1,24 +1,45 @@
 // src/app/projet/projet.component.ts
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Location } from '@angular/common';
 import { MissionFormComponent } from '../mission-form/mission-form.component';
+import { MissionListComponent } from '../mission-list/mission-list.component';
+
+interface Mission {
+  IdMission: number;
+  NomMission: string;
+  Description?: string;
+  IdProjet: number;
+  DateCreation: string;
+  membres_assignes?: string[];
+  competences_requises?: string[];
+}
+
+interface Projet {
+  IdProjet: number;
+  NomProjet: string;
+  Description: string;
+  CreateurId: number;
+  DateCreation: string;
+  missions?: Mission[];
+}
 
 @Component({
   selector: 'app-projet',
   standalone: true,
-  imports: [CommonModule, RouterModule, MissionFormComponent],
+  imports: [CommonModule, RouterModule, MissionFormComponent, MissionListComponent],
   templateUrl: './projet.component.html',
   styleUrls: ['./projet.component.css']
 })
 export class ProjetComponent implements OnInit {
-  projet: any = null;
-  projectId!: number; 
+  @ViewChild(MissionListComponent) missionList!: MissionListComponent;
+  
+  projet: Projet | null = null;
+  projectId!: number;
   errorMessage: string | null = null;
-  missions: any[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -29,7 +50,6 @@ export class ProjetComponent implements OnInit {
   ngOnInit(): void {
     this.projectId = +this.route.snapshot.paramMap.get('id')!;
     this.loadProjet();
-    this.loadMissions();
   }
 
   retour(): void {
@@ -43,12 +63,15 @@ export class ProjetComponent implements OnInit {
     }
 
     this.http
-      .get<any>(`http://localhost:3000/api/projets/${this.projectId}`)
+      .get<Projet>(`http://localhost:3000/api/projets/${this.projectId}`)
       .subscribe({
         next: project => {
           this.projet = project;
           console.log('✅ Projet chargé', this.projet);
-          this.refreshMissions();
+          // Rafraîchir les missions via le composant enfant
+          if (this.missionList) {
+            this.missionList.refreshMissions();
+          }
         },
         error: err => {
           console.error('❌ Erreur lors du chargement du projet', err);
@@ -57,34 +80,18 @@ export class ProjetComponent implements OnInit {
       });
   }
 
-  loadMissions(): void {
-    if (!this.projectId) return;
-
-    this.http
-      .get<any[]>(`http://localhost:3000/api/projets/${this.projectId}/missions`)
-      .subscribe({
-        next: data => {
-          this.missions = data;
-          console.log('📌 Missions chargées :', this.missions);
-        },
-        error: err => {
-          console.error('❌ Erreur lors du chargement des missions', err);
-        }
-      });
+  // Méthode appelée quand les missions sont mises à jour par le composant enfant
+  onMissionsUpdated(missions: Mission[]): void {
+    if (this.projet) {
+      this.projet.missions = missions;
+    }
   }
-  
+
+  // Méthode pour rafraîchir les missions
   refreshMissions(): void {
-    if (!this.projectId) return;
-
-    this.http
-      .get<any[]>(`http://localhost:3000/api/projets/${this.projectId}/missions`)
-      .subscribe({
-        next: data => {
-          this.projet.missions = data;
-        },
-        error: err => {
-          console.error('❌ Erreur lors du rafraîchissement des missions', err);
-        }
-      });
+    if (this.missionList) {
+      this.missionList.loadMissions();
+    }
   }
+
 }

@@ -1,26 +1,33 @@
 // src/app/personnel/personnel.component.ts
 
-import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core'; // Ajoute PLATFORM_ID et Inject
-import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { PersonnelService } from '../services/personnel.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { isPlatformBrowser } from '@angular/common'; // Ajoute isPlatformBrowser
+
+interface Personnel {
+  Identifiant: number;
+  Prenom: string;
+  Nom: string;
+  User: string;
+  Competences?: string;
+}
 
 @Component({
   selector: 'app-personnel',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './personnel.component.html',
   styleUrls: ['./personnel.component.css']
 })
 export class PersonnelComponent implements OnInit {
-  personnelList: any[] = [];
-  filteredPersonnel: any[] = [];
-  allPersonnel: any[] = [];
+  personnelList: Personnel[] = [];
+  filteredPersonnel: Personnel[] = [];
+  allPersonnel: Personnel[] = [];
   selectedPersonnelId: number | null = null;
-  editPersonnel: any = null;
+  editPersonnel: Personnel | null = null;
   searchQuery: string = '';
   competenceQuery: string = '';
   message: string = '';
@@ -32,17 +39,12 @@ export class PersonnelComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private personnelService: PersonnelService,
-    @Inject(PLATFORM_ID) private platformId: Object // Injecte PLATFORM_ID
+    private location: Location
   ) {}
 
   ngOnInit(): void {
-    // Vérifie si on est côté client avant d'accéder à localStorage
-    if (isPlatformBrowser(this.platformId)) {
-      const storedUserId = localStorage.getItem('userId');
-      this.userId = storedUserId ? +storedUserId : null;
-    } else {
-      this.userId = null; // Valeur par défaut en SSR
-    }
+    const storedUserId = localStorage.getItem('userId');
+    this.userId = storedUserId ? +storedUserId : null;
 
     this.route.params.subscribe(params => {
       this.projectId = +params['id'];
@@ -88,7 +90,7 @@ export class PersonnelComponent implements OnInit {
       next: (data: any) => {
         this.personnelList = data;
         this.filteredPersonnel = data;
-        console.log('✅ Membres du projet chargés avec compétences', this.personnelList);
+        console.log('Membres du projet chargés avec compétences', this.personnelList);
       },
       error: (error: HttpErrorResponse) => {
         console.error('❌ Erreur lors du chargement des membres', error);
@@ -101,10 +103,10 @@ export class PersonnelComponent implements OnInit {
     this.personnelService.getAllPersonnel().subscribe({
       next: (data: any) => {
         this.allPersonnel = data;
-        console.log('✅ Tous les membres chargés', this.allPersonnel);
+        console.log('Tous les membres chargés', this.allPersonnel);
       },
       error: (error: HttpErrorResponse) => {
-        console.error('❌ Erreur lors du chargement de tous les membres', error);
+        console.error('Erreur lors du chargement de tous les membres', error);
         this.message = 'Erreur lors du chargement de tous les membres.';
       }
     });
@@ -157,12 +159,12 @@ export class PersonnelComponent implements OnInit {
     });
   }
 
-  startEdit(person: any): void {
+  startEdit(person: Personnel): void {
     this.editPersonnel = { ...person };
   }
 
   saveEdit(): void {
-    if (!this.editPersonnel.Prenom || !this.editPersonnel.Nom || !this.editPersonnel.User) {
+    if (!this.editPersonnel?.Prenom || !this.editPersonnel?.Nom || !this.editPersonnel?.User) {
       this.message = 'Veuillez remplir tous les champs.';
       return;
     }
@@ -207,5 +209,9 @@ export class PersonnelComponent implements OnInit {
   cancelEdit(): void {
     this.editPersonnel = null;
     this.message = '';
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

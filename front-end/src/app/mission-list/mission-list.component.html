@@ -1,19 +1,40 @@
-<div class="container">
-  <h2>Liste des Missions</h2>
-
+<div class="mission-list">
   <div *ngIf="errorMessage" class="alert alert-danger">
     {{ errorMessage }}
   </div>
 
-  <div *ngIf="missions.length > 0 && !errorMessage; else noMissions">
+  <div *ngIf="!errorMessage">
     <div *ngFor="let mission of missions" class="mission-card">
-      <h3>{{ mission.Titre }}</h3>
-      <p><strong>Description :</strong> {{ mission.Description || 'Aucune description' }}</p>
-      <p><strong>Date de création :</strong> {{ mission.DateCreation | date:'short' }}</p>
+      <h3>{{ mission.NomMission }}</h3>
+      <p *ngIf="mission.Description">{{ mission.Description }}</p>
+      
+      <div class="mission-details">
+        <p><strong>Date de création :</strong> {{ mission.DateCreation | date:'dd/MM/yyyy' }}</p>
+        
+        <div *ngIf="mission.membres_assignes?.length" class="mission-members">
+          <h4>Membres assignés :</h4>
+          <ul>
+            <li *ngFor="let membre of mission.membres_assignes">{{ membre }}</li>
+          </ul>
+        </div>
+
+        <div *ngIf="mission.competences_requises?.length" class="mission-skills">
+          <h4>Compétences requises :</h4>
+          <ul>
+            <li *ngFor="let competence of mission.competences_requises">{{ competence }}</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mission-actions">
+        <button class="btn btn-danger" (click)="deleteMission(mission.IdMission)">
+          Supprimer
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="missions.length === 0" class="no-missions">
+      Aucune mission n'est actuellement assignée à ce projet.
     </div>
   </div>
-
-  <ng-template #noMissions>
-    <p>Aucune mission trouvée pour ce projet.</p>
-  </ng-template>
 </div>

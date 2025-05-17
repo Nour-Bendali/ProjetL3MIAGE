@@ -17,10 +17,10 @@ import { CompetencesAssignComponent } from './competences-assign/competences-ass
 
 
 export const routes: Routes = [
-  // ✅ Redirige la racine vers '/login' (point d'entrée par défaut)
+  //  Redirige la racine vers '/login' (point d'entrée par défaut)
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
-  // ✅ Routes principales
+  //  Routes principales
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'projets-form', component: ProjetsFormComponent },
@@ -39,6 +39,6 @@ export const routes: Routes = [
   {path: 'mission-form', component: MissionFormComponent},
   { path: 'mission-assign', component: MissionAssignComponent },
 
-  // 📋 Route catch-all pour rediriger vers login si chemin inconnu
+  //  Route catch-all pour rediriger vers login si chemin inconnu
   { path: '**', redirectTo: 'login' }
 ];

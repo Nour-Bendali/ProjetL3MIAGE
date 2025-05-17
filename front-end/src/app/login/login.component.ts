@@ -24,7 +24,7 @@ export class LoginComponent {
     console.log('Formulaire soumis', { email: this.User, password: this.password });
 
     // 📡 Appel API pour la connexion
-    this.http.post('http://localhost:3000/api/login', { User: this.User, password: this.password })
+    this.http.post('http://localhost:3000/api/auth/login', { User: this.User, password: this.password })
       .subscribe({
         next: (response: any) => {
           if (response.success) {

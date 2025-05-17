@@ -3,22 +3,74 @@
 }
 
 .mission-card {
-  border: 1px solid #ddd;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 5px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding: 20px;
 }
 
 .mission-card h3 {
-  margin-top: 0;
+  color: #333;
+  margin-bottom: 10px;
 }
 
-.alert {
-  padding: 10px;
-  margin-bottom: 15px;
+.mission-details {
+  margin: 15px 0;
+}
+
+.mission-members, .mission-skills {
+  margin-top: 15px;
+}
+
+.mission-members h4, .mission-skills h4 {
+  color: #666;
+  font-size: 1.1em;
+  margin-bottom: 8px;
+}
+
+.mission-members ul, .mission-skills ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.mission-members li, .mission-skills li {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  display: inline-block;
+  margin: 0 5px 5px 0;
+  padding: 5px 10px;
+}
+
+.mission-actions {
+  margin-top: 15px;
+  text-align: right;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  transition: background-color 0.2s;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+.no-missions {
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
 }
 
 .alert-danger {
   background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
   color: #721c24;
+  margin-bottom: 20px;
+  padding: 12px;
 }
