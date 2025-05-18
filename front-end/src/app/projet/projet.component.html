@@ -51,48 +51,4 @@
       <p>Chargement du projet...</p>
     </ng-template>
   </div>
-
-    <div *ngIf="projet && !errorMessage; else loading">
-      <h3>{{ projet.NomProjet }}</h3>
-      <p><strong>Description :</strong> {{ projet.Description }}</p>
-
-      <h4>Membres associés</h4>
-      <ul class="member-list">
-        <li *ngFor="let membre of membres" class="member-item">
-          {{ membre.Prenom }} {{ membre.Nom }}
-          <ul>
-            <li *ngFor="let comp of membre.competences">
-              {{ comp.Competence }}
-            </li>
-          </ul>
-        </li>
-      </ul>
-
-      <h4>Missions du projet</h4>
-      <app-mission-list
-        [projectId]="projectId"
-        (missionCree)="refreshMissions()"
-        (missionsUpdated)="onMissionsUpdated($event)">
-      </app-mission-list>
-
-    <h4>Ajouter une mission</h4>
-    <app-mission-form
-      [projetId]="projectId"
-      (missionCree)="refreshMissions()">
-    </app-mission-form>
-
-
-      <button
-        class="btn btn-primary"
-        [routerLink]="['/projets', projectId, 'personnel']">
-        Gérer les membres
-      </button>
-    </div>
-
-    <button class="btn btn-secondary" (click)="retour()">Retour au tableau de bord</button>
-
-    <ng-template #loading>
-      <p>Chargement du projet...</p>
-    </ng-template>
-  </div>
 </div>
