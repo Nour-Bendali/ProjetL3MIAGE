@@ -4,22 +4,22 @@ const db = require('../db');
 
 // Récupérer toutes les compétences d'une mission
 router.get('/:idMission/competences', (req, res) => {
-  const { idMission } = req.params;
-  const query = `
-    SELECT c.* 
-    FROM Competences c
-    JOIN CompetencesMissions cm ON c.IdCompetence = cm.IdCompetence
+  const idMission = req.params.idMission;
+  const sql = `
+    SELECT c.IdentifiantC AS IdCompetence, c.Competence
+    FROM CompetencesMissions cm
+    JOIN Competences c ON c.IdentifiantC = cm.IdCompetence
     WHERE cm.IdMission = ?
   `;
-
-  db.query(query, [idMission], (err, results) => {
+  db.execute(sql, [idMission], (err, rows) => {
     if (err) {
-      console.error('❌ Erreur lors de la récupération des compétences de la mission:', err);
-      return res.status(500).json({ success: false, error: 'Erreur serveur.' });
+      console.error('❌ Erreur SQL:', err);
+      return res.status(500).json({ error: 'Erreur SQL', details: err.message });
     }
-    res.json(results);
+    res.json(rows);
   });
 });
+
 
 // Ajouter une compétence à une mission
 router.post('/:idMission/competences', (req, res) => {

@@ -9,6 +9,11 @@ import { MissionFormComponent } from '../mission-form/mission-form.component';
 import { MissionListComponent } from '../mission-list/mission-list.component';
 import { Mission } from '../services/mission.service';
 
+import {
+  ProjetService,
+  PersonnelWithCompetences
+} from '../services/projet.service';
+
 interface Projet {
   IdProjet: number;
   NomProjet: string;
@@ -27,14 +32,16 @@ interface Projet {
 })
 export class ProjetComponent implements OnInit {
   @ViewChild(MissionListComponent) missionList!: MissionListComponent;
-  
+
   projet: Projet | null = null;
+  membres: PersonnelWithCompetences[] = [];
   projectId!: number;
   errorMessage: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
+    private projetService: ProjetService,
     private location: Location
   ) {}
 
@@ -47,7 +54,7 @@ export class ProjetComponent implements OnInit {
     this.location.back();
   }
 
-  loadProjet(): void {
+  private loadProjet(): void {
     if (!this.projectId) {
       this.errorMessage = 'ID de projet invalide.';
       return;
@@ -59,16 +66,28 @@ export class ProjetComponent implements OnInit {
         next: project => {
           this.projet = project;
           console.log('✅ Projet chargé', this.projet);
-          // Rafraîchir les missions via le composant enfant
-          if (this.missionList) {
-            this.missionList.refreshMissions();
-          }
+          // charger les membres dès que le projet est chargé
+          this.loadMembres();
+          // rafraîchir les missions via le composant enfant
+          this.missionList?.refreshMissions();
         },
         error: err => {
           console.error('❌ Erreur lors du chargement du projet', err);
           this.errorMessage = 'Impossible de charger le projet. Veuillez réessayer plus tard.';
         }
       });
+  }
+
+  /** Charge la liste des membres avec leurs compétences */
+  private loadMembres(): void {
+    this.projetService.getProjectMembers(this.projectId).subscribe({
+      next: data => {
+        this.membres = data;
+      },
+      error: err => {
+        console.error('❌ Erreur lors du chargement des membres', err);
+      }
+    });
   }
 
   // Méthode appelée quand les missions sont mises à jour par le composant enfant
@@ -80,9 +99,6 @@ export class ProjetComponent implements OnInit {
 
   // Méthode pour rafraîchir les missions
   refreshMissions(): void {
-    if (this.missionList) {
-      this.missionList.loadMissions();
-    }
+    this.missionList?.loadMissions();
   }
-
 }

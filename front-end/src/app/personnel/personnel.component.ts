@@ -1,19 +1,9 @@
 // src/app/personnel/personnel.component.ts
-
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, Location, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { PersonnelService } from '../services/personnel.service';
-import { HttpErrorResponse } from '@angular/common/http';
-
-interface Personnel {
-  Identifiant: number;
-  Prenom: string;
-  Nom: string;
-  User: string;
-  Competences?: string;
-}
+import { PersonnelService, Personnel } from '../services/personnel.service';
 
 @Component({
   selector: 'app-personnel',
@@ -23,192 +13,131 @@ interface Personnel {
   styleUrls: ['./personnel.component.css']
 })
 export class PersonnelComponent implements OnInit {
-  personnelList: Personnel[] = [];
-  filteredPersonnel: Personnel[] = [];
-  allPersonnel: Personnel[] = [];
-  selectedPersonnelId: number | null = null;
-  editPersonnel: Personnel | null = null;
-  searchQuery: string = '';
-  competenceQuery: string = '';
-  message: string = '';
-  projectId: number | null = null;
-  userId: number | null = null;
-  createurId: number | null = null;
-  isCreator: boolean = false;
+  projectId!: number;
+  userId!: number;
+  createurId!: number;
+  isCreator = false;
+
+  allPersonnel: Personnel[]      = [];
+  assignedPersonnel: Personnel[] = [];
+  availablePersonnel: Personnel[] = [];
+
+  selectedAvailablePersonnelId: number | null = null;
+  selectedAssignedPersonnelId:  number | null = null;
+
+  message = '';
 
   constructor(
     private route: ActivatedRoute,
-    private personnelService: PersonnelService,
-    private location: Location
+    private svc: PersonnelService,
+    private location: Location,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit(): void {
-    const storedUserId = localStorage.getItem('userId');
-    this.userId = storedUserId ? +storedUserId : null;
+    if (isPlatformBrowser(this.platformId)) {
+      const uid = localStorage.getItem('userId');
+      this.userId = uid ? +uid : -1;
+    } else {
+      this.userId = -1;
+    }
 
-    this.route.params.subscribe(params => {
-      this.projectId = +params['id'];
-      if (this.projectId) {
-        this.loadProjetDetails();
-        this.loadPersonnel();
-        this.loadAllPersonnel();
-      } else {
-        this.message = 'ID du projet non spécifié.';
-      }
-    });
+    this.projectId = +this.route.snapshot.paramMap.get('id')!;
+
+    this.loadProjetDetails();
+    this.loadAllPersonnel();
+    this.loadAssignedPersonnel();
   }
 
-  loadProjetDetails(): void {
+  private loadProjetDetails(): void {
     if (!this.projectId) return;
-  
-    this.personnelService.getProjet(this.projectId).subscribe({
-      next: (response: any) => {
-        if (response && response.CreateurId !== undefined) {
-          this.createurId = response.CreateurId;
-          this.isCreator = this.userId === this.createurId;
-          console.log(`✅ Projet chargé, créateur: ${this.createurId}, utilisateur connecté: ${this.userId}, est créateur: ${this.isCreator}`);
-        } else {
-          console.error('❌ Réponse inattendue :', response);
-          this.message = 'Projet invalide.';
-          this.createurId = null;
-          this.isCreator = false;
-        }
+    this.svc.getProjet(this.projectId).subscribe({
+      next: proj => {
+        this.createurId = proj.CreateurId;
+        this.isCreator  = this.userId === this.createurId;
       },
-      error: (error: HttpErrorResponse) => {
-        console.error('❌ Erreur :', error);
-        this.message = 'Erreur lors du chargement du projet.';
-        this.createurId = null;
-        this.isCreator = false;
+      error: () => {
+        this.message = 'Erreur chargement projet.';
+        alert(this.message);
       }
     });
   }
 
-  loadPersonnel(): void {
-    if (!this.projectId) return;
-
-    this.personnelService.getPersonnelProjet(this.projectId).subscribe({
-      next: (data: any) => {
-        this.personnelList = data;
-        this.filteredPersonnel = data;
-        console.log('Membres du projet chargés avec compétences', this.personnelList);
+  private loadAllPersonnel(): void {
+    this.svc.getAllPersonnel().subscribe({
+      next: (all: Personnel[]) => {
+        this.allPersonnel = all;
+        this.updateAvailable();
       },
-      error: (error: HttpErrorResponse) => {
-        console.error('❌ Erreur lors du chargement des membres', error);
-        this.message = 'Erreur lors du chargement des membres.';
+      error: () => {
+        this.message = 'Erreur chargement personnel global.';
+        alert(this.message);
       }
     });
   }
 
-  loadAllPersonnel(): void {
-    this.personnelService.getAllPersonnel().subscribe({
-      next: (data: any) => {
-        this.allPersonnel = data;
-        console.log('Tous les membres chargés', this.allPersonnel);
+  private loadAssignedPersonnel(): void {
+    this.svc.getPersonnelProjet(this.projectId).subscribe({
+      next: (asg: Personnel[]) => {
+        this.assignedPersonnel = asg;
+        this.updateAvailable();
       },
-      error: (error: HttpErrorResponse) => {
-        console.error('Erreur lors du chargement de tous les membres', error);
-        this.message = 'Erreur lors du chargement de tous les membres.';
+      error: () => {
+        this.message = 'Erreur chargement membres assignés.';
+        alert(this.message);
       }
     });
   }
 
-  filterPersonnel(): void {
-    this.filteredPersonnel = this.personnelList;
-
-    // Filtrer par recherche générale (Prénom, Nom, Email)
-    if (this.searchQuery) {
-      const query = this.searchQuery.toLowerCase();
-      this.filteredPersonnel = this.filteredPersonnel.filter(person =>
-        person.Prenom.toLowerCase().includes(query) ||
-        person.Nom.toLowerCase().includes(query) ||
-        person.User.toLowerCase().includes(query)
-      );
-    }
-
-    // Filtrer par compétence
-    if (this.competenceQuery) {
-      const compQuery = this.competenceQuery.toLowerCase();
-      this.filteredPersonnel = this.filteredPersonnel.filter(person =>
-        person.Competences?.toLowerCase().includes(compQuery)
-      );
-    }
+  private updateAvailable(): void {
+    this.availablePersonnel = this.allPersonnel.filter(
+      p => !this.assignedPersonnel.some(a => a.Identifiant === p.Identifiant)
+    );
+    this.selectedAvailablePersonnelId = null;
+    this.selectedAssignedPersonnelId  = null;
   }
 
-  addSelectedPersonnel(): void {
-    if (!this.isCreator) {
-      this.message = 'Seul le créateur du projet peut ajouter des membres.';
-      return;
-    }
-
-    if (!this.selectedPersonnelId || !this.projectId) {
+  addMember(): void {
+    // if (!this.isCreator) { … }
+    const id = this.selectedAvailablePersonnelId;
+    if (!id) {
       this.message = 'Veuillez sélectionner un membre.';
+      alert(this.message);
       return;
     }
-
-    this.personnelService.ajouterPersonneAuProjet(this.projectId, this.selectedPersonnelId).subscribe({
+    this.svc.ajouterPersonneAuProjet(this.projectId, id).subscribe({
       next: () => {
-        console.log('✅ Membre ajouté au projet');
         this.message = 'Membre ajouté avec succès.';
-        this.selectedPersonnelId = null;
-        this.loadPersonnel();
+        alert(this.message);
+        this.loadAssignedPersonnel();
       },
-      error: (error: HttpErrorResponse) => {
-        console.error('❌ Erreur lors de l’ajout au projet', error);
-        this.message = error.error?.error || 'Erreur lors de l’ajout du membre au projet.';
+      error: () => {
+        this.message = 'Erreur lors de l’ajout.';
+        alert(this.message);
       }
     });
   }
 
-  startEdit(person: Personnel): void {
-    this.editPersonnel = { ...person };
-  }
-
-  saveEdit(): void {
-    if (!this.editPersonnel?.Prenom || !this.editPersonnel?.Nom || !this.editPersonnel?.User) {
-      this.message = 'Veuillez remplir tous les champs.';
+  removeMember(): void {
+    // if (!this.isCreator) { … }
+    const id = this.selectedAssignedPersonnelId;
+    if (!id) {
+      this.message = 'Veuillez sélectionner un membre.';
+      alert(this.message);
       return;
     }
-
-    this.personnelService.createPersonnel(this.editPersonnel).subscribe({
+    if (!confirm('Confirmez la suppression ?')) return;
+    this.svc.supprimerPersonneDuProjet(this.projectId, id).subscribe({
       next: () => {
-        console.log('✅ Membre modifié');
-        this.message = 'Membre modifié avec succès.';
-        this.editPersonnel = null;
-        this.loadPersonnel();
+        this.message = 'Membre supprimé avec succès.';
+        alert(this.message);
+        this.loadAssignedPersonnel();
       },
-      error: (error: HttpErrorResponse) => {
-        console.error('❌ Erreur lors de la modification', error);
-        this.message = 'Erreur lors de la modification du membre.';
+      error: () => {
+        this.message = 'Erreur lors de la suppression.';
+        alert(this.message);
       }
     });
-  }
-
-  deletePersonnel(id: number): void {
-    if (!this.isCreator) {
-      this.message = 'Seul le créateur du projet peut supprimer des membres.';
-      return;
-    }
-
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce membre ?')) {
-      if (!this.projectId) return;
-
-      this.personnelService.supprimerPersonneDuProjet(this.projectId, id).subscribe({
-        next: () => {
-          console.log('✅ Membre supprimé');
-          this.message = 'Membre supprimé avec succès.';
-          this.loadPersonnel();
-        },
-        error: (error: HttpErrorResponse) => {
-          console.error('❌ Erreur lors de la suppression', error);
-          this.message = error.error?.error || 'Erreur lors de la suppression du membre.';
-        }
-      });
-    }
-  }
-
-  cancelEdit(): void {
-    this.editPersonnel = null;
-    this.message = '';
   }
 
   goBack(): void {

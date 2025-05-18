@@ -5,6 +5,15 @@
     {{ errorMessage }}
   </div>
 
+  <!-- Bouton Rafraîchir manuel -->
+  <button
+    class="btn btn-sm btn-secondary mb-2"
+    (click)="refreshMissions()"
+    [disabled]="isLoading"
+  >
+    🔄 Rafraîchir
+  </button>
+
   <!-- Liste des missions -->
   <div *ngIf="!errorMessage" class="missions-container">
     <!-- Message si aucune mission -->
@@ -25,7 +34,6 @@
 
         <!-- Détails de la mission -->
         <div class="mission-content">
-          <!-- Informations générales -->
           <div class="mission-info">
             <p class="mission-date">
               <i class="fas fa-calendar"></i>
@@ -34,16 +42,16 @@
             </p>
           </div>
 
-          <!-- Membres assignés -->
+          <!-- Composant d’assignation -->
           <section class="mission-section">
             <h4 class="section-title">Assigner un membre</h4>
             <div class="mission-members">
               <app-mission-assign 
                 *ngIf="projectId"
                 [selectedMissionId]="mission.IdMission" 
-                [projectId]="projectId!"
+                [projectId]="projectId"
                 class="mission-assign-component"
-                (missionAssigned)="refreshMissions()">
+                (missionAssigned)="onMissionAssigned()">
               </app-mission-assign>
             </div>
           </section>
@@ -52,21 +60,55 @@
           <section *ngIf="mission.membres_assignes?.length" class="mission-section">
             <h4 class="section-title">Membres assignés</h4>
             <ul class="members-list">
-              <li *ngFor="let membre of mission.membres_assignes" class="member-item">
-                {{ membre.Prenom }} {{ membre.Nom }}
-                <small class="text-muted">({{ membre.User }})</small>
+              <li *ngFor="let membre of mission.membres_assignes" class="member-item d-flex justify-content-between align-items-center">
+                <span>
+                  {{ membre.Prenom }} {{ membre.Nom }}
+                  <small class="text-muted">({{ membre.User }})</small>
+                </span>
+                <button
+                  class="btn btn-sm btn-outline-danger ms-2"
+                  (click)="supprimerMembre(mission.IdMission, membre.Identifiant)"
+                  title="Retirer ce membre">
+                  <i class="fas fa-user-minus"></i>
+                </button>
               </li>
             </ul>
           </section>
 
           <!-- Compétences requises -->
-          <section *ngIf="mission.competences_requises?.length" class="mission-section">
+          <section class="mission-section">
             <h4 class="section-title">Compétences requises</h4>
-            <ul class="skills-list">
-              <li *ngFor="let competence of mission.competences_requises" class="skill-item">
-                {{ competence }}
-              </li>
-            </ul>
+
+            <!-- Liste ou message -->
+            <ng-container *ngIf="mission.competences_requises && mission.competences_requises.length > 0; else aucuneCompetence">
+
+              <ul class="skills-list">
+                <li *ngFor="let competence of mission.competences_requises" class="skill-item d-flex justify-content-between align-items-center">
+                  <span>{{ competence.Competence }}</span>
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="supprimerCompetence(mission.IdMission, competence.IdCompetence)"
+                    title="Supprimer cette compétence">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </li>
+              </ul>
+            </ng-container>
+
+            <!-- Message si aucune compétence -->
+            <ng-template #aucuneCompetence>
+              <p class="text-muted fst-italic">Aucune compétence assignée à cette mission.</p>
+            </ng-template>
+
+            <!-- Assignateur de compétences -->
+            <div class="mt-2">
+              <p class="text-muted mb-1"><small>Ajouter une compétence</small></p>
+              <app-competences-assign 
+                [missionId]="mission.IdMission"
+                (competenceAssigned)="onMissionAssigned()"
+                class="competence-assign-component">
+              </app-competences-assign>
+            </div>
           </section>
         </div>
 

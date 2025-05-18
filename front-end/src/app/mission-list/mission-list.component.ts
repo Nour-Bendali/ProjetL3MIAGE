@@ -1,50 +1,54 @@
-import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
-import { take } from 'rxjs/operators';
-import { MissionService, Mission } from '../services/mission.service';
-import { MissionAssignComponent } from '../mission-assign/mission-assign.component';
-
-// VOIR CETTE PAGE SUR LE SITE http://localhost:4200/projets/1/missions
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule }                     from '@angular/common';
+import { HttpClientModule }                 from '@angular/common/http';
+import { RouterModule, ActivatedRoute }     from '@angular/router';
+import { take }                             from 'rxjs/operators';
+import { CompetencesAssignComponent } from '../competences-assign/competences-assign.component';
+import { MissionService, Mission, Membre, Competence } from '../services/mission.service';
+import { MissionAssignComponent }           from '../mission-assign/mission-assign.component';
 
 @Component({
   selector: 'app-mission-list',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, MissionAssignComponent],
+  imports: [
+    CommonModule,
+    HttpClientModule,
+    RouterModule,
+    MissionAssignComponent,
+    CompetencesAssignComponent
+  ],
   templateUrl: './mission-list.component.html',
   styleUrls: ['./mission-list.component.css']
 })
 export class MissionListComponent implements OnInit {
-  @Input() projectId: number | undefined;
+  @Input() projectId?: number;
   @Output() missionCree = new EventEmitter<void>();
   @Output() missionsUpdated = new EventEmitter<Mission[]>();
 
-  missions: Mission[] = [];
+  missions: (Mission & {
+    membres_assignes?: Membre[];
+    competences_requises?: Competence[];
+  })[] = [];
+
   errorMessage: string | null = null;
-  isLoading: boolean = false;
+  isLoading = false;
 
   constructor(
-    private readonly missionService: MissionService,
-    private readonly route: ActivatedRoute
+    private missionService: MissionService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    this.initializeProjectId();
-  }
-
-  private initializeProjectId(): void {
-    if (!this.projectId) {
-      const id = this.route.snapshot?.paramMap.get('id');
-      if (id && !isNaN(Number(id))) {
-        this.projectId = Number(id);
-        this.loadMissions();
+    if (this.projectId == null) {
+      const id = this.route.snapshot.paramMap.get('id');
+      if (id && !isNaN(+id)) {
+        this.projectId = +id;
       } else {
-        this.errorMessage = 'ID du projet invalide ou manquant. Veuillez accéder à cette page via un projet valide.';
+        this.errorMessage = 'ID du projet invalide ou manquant.';
+        return;
       }
-    } else {
-      this.loadMissions();
     }
+    this.loadMissions();
   }
 
   loadMissions(): void {
@@ -59,19 +63,37 @@ export class MissionListComponent implements OnInit {
     this.missionService.getMissionsByProjet(this.projectId)
       .pipe(take(1))
       .subscribe({
-        next: (data: Mission[]) => {
-          this.missions = data;
-          this.missionsUpdated.emit(data);
-          this.isLoading = false;
-          console.log('✅ Missions chargées', this.missions);
+        next: missions => {
+          const missionPromises = missions.map(m =>
+            Promise.all([
+              this.missionService.getMembresParMission(m.IdMission).pipe(take(1)).toPromise(),
+              this.missionService.getCompetencesByMission(m.IdMission).pipe(take(1)).toPromise()
+            ]).then(([membres, competences]) => ({
+              ...m,
+              membres_assignes: membres,
+              competences_requises: competences
+            }))
+          );
+
+          Promise.all(missionPromises).then(missionsAvecTout => {
+            this.missions = missionsAvecTout; // ✅ Pas de transformation destructrice ici
+            this.missionsUpdated.emit(this.missions);
+            this.isLoading = false;
+          });
         },
-        error: (error: Error) => {
-          console.error('❌ Erreur lors du chargement des missions', error);
-          this.errorMessage = 'Impossible de charger les missions. Veuillez réessayer plus tard.';
+        error: () => {
+          this.errorMessage = 'Impossible de charger les missions.';
           this.isLoading = false;
-          this.missions = [];
         }
       });
+  }
+
+  refreshMissions(): void {
+    this.loadMissions();
+  }
+
+  onMissionAssigned(): void {
+    this.refreshMissions();
   }
 
   onMissionCreated(): void {
@@ -79,31 +101,47 @@ export class MissionListComponent implements OnInit {
     this.loadMissions();
   }
 
-  refreshMissions(): void {
-    this.loadMissions();
+  deleteMission(id: number): void {
+    if (!this.projectId) return;
+    if (!confirm('Supprimer cette mission ?')) return;
+    this.isLoading = true;
+    this.missionService.deleteMission(this.projectId, id)
+      .subscribe({
+        next: () => this.loadMissions(),
+        error: () => {
+          this.errorMessage = 'Impossible de supprimer la mission.';
+          this.isLoading = false;
+        }
+      });
   }
 
-  deleteMission(id: number): void {
-    if (!this.projectId || !id) {
-      console.error('ID de projet ou de mission invalide');
-      return;
-    }
-  
-    const confirmDelete = confirm('Êtes-vous sûr de vouloir supprimer cette mission ?');
-    if (confirmDelete) {
-      this.isLoading = true;
-      this.missionService.deleteMission(this.projectId, id)
-        .subscribe({
-          next: () => {
-            this.loadMissions();
-            this.isLoading = false;
-          },
-          error: (error: Error) => {
-            console.error("Erreur lors de la suppression de la mission:", error);
-            this.errorMessage = 'Impossible de supprimer la mission. Veuillez réessayer plus tard.';
-            this.isLoading = false;
-          }
-        });
-    }
+  supprimerMembre(missionId: number, personnelId: number): void {
+    const confirmation = confirm('Retirer ce membre de la mission ?');
+    if (!confirmation) return;
+
+    this.missionService.deleteMembreDeMission(missionId, personnelId)
+      .pipe(take(1))
+      .subscribe({
+        next: () => this.refreshMissions(),
+        error: err => {
+          console.error('❌ Erreur suppression membre:', err);
+          this.errorMessage = 'Impossible de supprimer ce membre.';
+        }
+      });
+  }
+
+  supprimerCompetence(missionId: number, competenceId: number): void {
+    const confirmation = confirm('Supprimer cette compétence de la mission ?');
+    if (!confirmation) return;
+
+    this.missionService.deleteCompetenceFromMission(missionId, competenceId)
+      .pipe(take(1))
+      .subscribe({
+        next: () => this.refreshMissions(),
+        error: err => {
+          console.error('❌ Erreur suppression compétence:', err);
+          this.errorMessage = 'Impossible de supprimer la compétence.';
+        }
+      });
   }
 }

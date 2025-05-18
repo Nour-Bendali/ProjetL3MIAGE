@@ -1,15 +1,14 @@
 <div class="mission-assign">
-  <!-- Message d'erreur -->
   <div *ngIf="errorMessage" class="alert alert-danger alert-sm mb-2" role="alert">
     {{ errorMessage }}
   </div>
 
-  <!-- Sélection du membre -->
   <div class="mb-2">
-    <select 
-      class="form-select form-select-sm" 
+    <select
+      class="form-select form-select-sm"
       [(ngModel)]="selectedPersonnelId"
-      [disabled]="isLoading">
+      [disabled]="isLoading"
+    >
       <option [ngValue]="null">-- Sélectionner un membre --</option>
       <option *ngFor="let p of personnel" [ngValue]="p.Identifiant">
         {{ p.Prenom }} {{ p.Nom }}
@@ -17,13 +16,17 @@
     </select>
   </div>
 
-  <!-- Bouton d'assignation -->
-  <button 
-    class="btn btn-sm btn-primary" 
-    (click)="assignMission()" 
-    [disabled]="!selectedPersonnelId || isLoading">
-    <i class="fas" [class.fa-user-plus]="!isLoading" [class.fa-spinner]="isLoading" [class.fa-spin]="isLoading"></i>
+  <button
+    class="btn btn-sm btn-primary"
+    (click)="assignMission()"
+    [disabled]="!selectedPersonnelId || isLoading"
+  >
+    <i
+      class="fas"
+      [class.fa-user-plus]="!isLoading"
+      [class.fa-spinner]="isLoading"
+      [class.fa-spin]="isLoading"
+    ></i>
     {{ isLoading ? 'Assignation...' : 'Assigner' }}
   </button>
 </div>
-  

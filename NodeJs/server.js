@@ -11,9 +11,9 @@ app.use('/api/projets', require('./routes/projets'));
 app.use('/api/missions', require('./routes/missions'));
 app.use('/api/personnel', require('./routes/personnel'));
 app.use('/api/competences', require('./routes/competences'));
-app.use('/api/projets-personnels', require('./routes/projetsPersonnels'));
-app.use('/api/missions-personnel', require('./routes/missionsPersonnels'));
-app.use('/api/competences-missions', require('./routes/competencesMissions'));
+app.use('/api/projets-personnel', require('./routes/projetsPersonnels'));
+app.use('/api/missions', require('./routes/missionsPersonnels'));
+app.use('/api/missions', require('./routes/competencesMissions'));
 
 // Gestion des erreurs 404
 app.use((req, res) => {
