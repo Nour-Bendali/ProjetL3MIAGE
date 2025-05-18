@@ -1,13 +1,33 @@
-<div>
-  <!-- 📋 Formulaire pour créer un nouveau projet -->
-  <h2>Créer un nouveau projet</h2>
-  <form (ngSubmit)="createProjet()">
-    <label>Nom du projet :</label>
-    <input [(ngModel)]="nouveauProjet.nomProjet" name="nomProjet" required>
-    <br>
-    <label>Description :</label>
-    <textarea [(ngModel)]="nouveauProjet.description" name="description"></textarea>
-    <br>
-    <button type="submit" [disabled]="!nouveauProjet.nomProjet">Créer</button>
-  </form>
+<div class="form-wrapper">
+  <div class="form-card">
+    <h2 class="form-title">Créer un nouveau projet</h2>
+    <form (ngSubmit)="createProjet()" class="projet-form">
+      <div class="input-group">
+        <label for="nomProjet">Nom du projet</label>
+        <div class="input-wrapper">
+          <input 
+            id="nomProjet"
+            [(ngModel)]="nouveauProjet.nomProjet" 
+            name="nomProjet" 
+            required 
+            placeholder="Un nom épique pour ton projet..."
+          >
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="description">Description</label>
+        <div class="input-wrapper">
+          <textarea 
+            id="description"
+            [(ngModel)]="nouveauProjet.description" 
+            name="description" 
+            placeholder="       Raconte ton projet..."
+          ></textarea>
+        </div>
+      </div>
+      <button type="submit" [disabled]="!nouveauProjet.nomProjet" class="submit-btn">
+        Créer <span class="rocket"></span>
+      </button>
+    </form>
+  </div>
 </div>
