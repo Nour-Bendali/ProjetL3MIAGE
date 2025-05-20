@@ -3,7 +3,6 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { DashboardFoldersComponent } from './dashboard-folders/dashboard-folders.component';
-import { RegisterComponent } from './register/register.component';
 import { PersonnelComponent } from './personnel/personnel.component';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
@@ -21,7 +20,6 @@ export const routes: Routes = [
 
   // Routes principales
   { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
   { path: 'projets-form', component: ProjetsFormComponent },
   { path: 'projets-assign', component: ProjetsAssignComponent },
   { path: 'dashboard-folders', component: DashboardFoldersComponent },
