@@ -26,7 +26,7 @@
       <article *ngFor="let mission of missions" class="mission-card">
         <!-- En-tête de la mission -->
         <header class="mission-header">
-          <h3 class="mission-title">{{ mission.NomMission }}</h3>
+          <h3 class="mission-title">{{ mission.Titre }}</h3>
           <p *ngIf="mission.Description" class="mission-description">
             {{ mission.Description }}
           </p>

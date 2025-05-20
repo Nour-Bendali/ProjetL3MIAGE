@@ -1,32 +1,27 @@
-<div class="mission-assign">
-  <div *ngIf="errorMessage" class="alert alert-danger alert-sm mb-2" role="alert">
-    {{ errorMessage }}
-  </div>
-
-  <div class="mb-2">
-    <select
-      class="form-select form-select-sm"
-      [(ngModel)]="selectedPersonnelId"
-      [disabled]="isLoading"
-    >
-      <option [ngValue]="null">-- Sélectionner un membre --</option>
-      <option *ngFor="let p of personnel" [ngValue]="p.Identifiant">
-        {{ p.Prenom }} {{ p.Nom }}
-      </option>
-    </select>
-  </div>
-
-  <button
-    class="btn btn-sm btn-primary"
-    (click)="assignMission()"
-    [disabled]="!selectedPersonnelId || isLoading"
+<!-- src/app/mission-assign/mission-assign.component.html -->
+<div class="mb-2">
+  <label for="personnelSelect">Assigner un membre :</label>
+  <select
+    id="personnelSelect"
+    class="form-select"
+    [(ngModel)]="selectedPersonnelId"
+    name="personnel"
   >
-    <i
-      class="fas"
-      [class.fa-user-plus]="!isLoading"
-      [class.fa-spinner]="isLoading"
-      [class.fa-spin]="isLoading"
-    ></i>
-    {{ isLoading ? 'Assignation...' : 'Assigner' }}
-  </button>
+    <option [ngValue]="undefined" disabled selected>Choisissez un membre</option>
+    <option *ngFor="let p of personnel" [ngValue]="p.Identifiant">
+      {{ p.Prenom }} {{ p.Nom }} ({{ p.User }})
+    </option>
+  </select>
+</div>
+
+<button
+  class="btn btn-sm btn-primary"
+  (click)="assignMission()"
+  [disabled]="!selectedPersonnelId || isLoading"
+>
+  Assign
+</button>
+
+<div *ngIf="errorMessage" class="text-danger mt-1">
+  {{ errorMessage }}
 </div>

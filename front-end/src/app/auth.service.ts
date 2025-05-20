@@ -1,48 +1,57 @@
 // src/app/auth.service.ts
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core'; // Added: Inject PLATFORM_ID
+import { isPlatformBrowser } from '@angular/common';            // Added: import isPlatformBrowser
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs'; // Added: import tap operator
+import { Observable, tap } from 'rxjs';
 
 interface LoginResponse {
   success: boolean;
-  token: string; // Added: include token in response interface
+  token: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   // URL de l'API pour la connexion
   private loginUrl = 'http://localhost:3000/api/auth/login';
-  private readonly TOKEN_KEY = 'jwt_token'; // Added: key for storing JWT in localStorage
+  private readonly TOKEN_KEY = 'jwt_token'; // key for storing JWT in localStorage
+  private isBrowser: boolean;              // Added: flag to check browser context
 
-  // Injection du service HttpClient pour effectuer des requêtes HTTP
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object // Added: inject platformId
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId); // Added: determine if running in browser
+  }
 
   /**
    * Envoie une requête POST au serveur pour tenter une connexion avec les identifiants fournis.
-   * @param email L'adresse email de l'utilisateur
-   * @param password Le mot de passe de l'utilisateur
-   * @returns Un Observable contenant un objet avec une propriété "success" et le "token" JWT
    */
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.loginUrl, { email, password }).pipe(
       tap(res => {
-        localStorage.setItem(this.TOKEN_KEY, res.token); // Added: store JWT in localStorage
+        if (this.isBrowser) {                        // Added: guard localStorage
+          localStorage.setItem(this.TOKEN_KEY, res.token); // store JWT in browser only
+        }
       })
     );
   }
 
   /**
    * Récupère le token JWT stocké
-   * @returns Le token ou null si absent
    */
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY); // Added: retrieve JWT from localStorage
+    if (this.isBrowser) {                          // Added: guard localStorage
+      return localStorage.getItem(this.TOKEN_KEY);
+    }
+    return null;
   }
 
   /**
    * Supprime le token JWT pour déconnexion
    */
   logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY); // Added: remove JWT from localStorage
+    if (this.isBrowser) {                          // Added: guard localStorage
+      localStorage.removeItem(this.TOKEN_KEY);
+    }
   }
 }
