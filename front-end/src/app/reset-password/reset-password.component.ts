@@ -1,52 +1,73 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+// src/app/reset-password/reset-password.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-reset-password',
-  standalone: true, // ✅ Composant autonome
-  imports: [FormsModule, CommonModule], // ✅ Import des modules nécessaires
-  templateUrl: './reset-password.component.html'
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule],
+  templateUrl: './reset-password.component.html',
+  styleUrls: ['./reset-password.component.css']
 })
-export class ResetPasswordComponent {
+export class ResetPasswordComponent implements OnInit {
   newPassword: string = '';
   confirmPassword: string = '';
   username: string = '';
   errorMessage: string = '';
   successMessage: string = '';
+  isLoading: boolean = false;
 
-  constructor(private http: HttpClient, private router: Router) {
-    // 🔐 Récupération du nom d'utilisateur depuis la navigation
-    const nav = this.router.getCurrentNavigation();
-    if (nav?.extras.state && nav.extras.state['username']) {
-      this.username = nav.extras.state['username'];
-    } else {
-      this.router.navigate(['/login']); // 🔄 Redirection si accès direct sans vérification
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    // 🔐 Récupère le nom d'utilisateur depuis history.state
+    this.username = history.state.username || '';
+    if (!this.username) {
+      // Pas de username => retour au login
+      this.router.navigate(['/login']);
     }
   }
 
   /**
    * 🔁 Envoie la nouvelle password au backend pour mise à jour
    */
-  resetPassword() {
+  resetPassword(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    if (!this.newPassword || !this.confirmPassword) {
+      this.errorMessage = 'Veuillez remplir tous les champs.';
+      return;
+    }
     if (this.newPassword !== this.confirmPassword) {
-      this.errorMessage = "Les mots de passe ne correspondent pas.";
+      this.errorMessage = 'Les mots de passe ne correspondent pas.';
       return;
     }
 
-    this.http.post('http://localhost:3000/api/reset-password', {
-      username: this.username,
-      newPassword: this.newPassword
-    }).subscribe({
-      next: () => {
-        this.successMessage = "Mot de passe modifié avec succès.";
-        setTimeout(() => this.router.navigate(['/']), 2000); // ⏳ Retour au login
-      },
-      error: () => {
-        this.errorMessage = "Erreur lors de la modification du mot de passe.";
-      }
-    });
+    this.isLoading = true;
+    this.authService.resetPassword(this.username, this.newPassword)
+      .subscribe({
+        next: (res) => {
+          this.isLoading = false;
+          if (res.success) {
+            this.successMessage = 'Mot de passe modifié avec succès.';
+            setTimeout(() => this.router.navigate(['/login']), 2000);
+          } else {
+            this.errorMessage = res.error || 'Erreur lors de la modification du mot de passe.';
+          }
+        },
+        error: (err) => {
+          this.isLoading = false;
+          console.error('❌ Erreur reset-password:', err);
+          this.errorMessage = err.error?.error || 'Erreur lors de la modification du mot de passe.';
+        }
+      });
   }
 }
