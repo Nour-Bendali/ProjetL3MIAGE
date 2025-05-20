@@ -1,8 +1,9 @@
 // src/app/services/projet.service.ts
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';             // Added: HttpHeaders import
 import { Observable } from 'rxjs';
+import { AuthService } from '../auth.service';                                // Added: import AuthService
 
 /** ------------- Interfaces pour les membres et leurs compétences ------------- */
 export interface Competence {
@@ -17,6 +18,11 @@ export interface PersonnelWithCompetences {
   User:        string;
   competences: Competence[];
 }
+
+export interface ProjetCreate {
+  nomProjet: string;
+  description: string;
+}
 /** ------------------------------------------------------------------------------- */
 
 @Injectable({
@@ -28,7 +34,10 @@ export class ProjetService {
   // URL dédiée au point d'accès "projets-personnel"
   private projetsPersonnelUrl = 'http://localhost:3000/api/projets-personnel';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService                                          // Added: inject AuthService
+  ) {}
 
   // 🔹 Récupérer tous les projets
   getAllProjets(): Observable<any> {
@@ -40,10 +49,27 @@ export class ProjetService {
     return this.http.get(`${this.apiUrl}/${id}`);
   }
 
-  // 🔹 Créer un nouveau projet
+  /** 🔹 Créer un nouveau projet */
+  createProjet(projet: ProjetCreate): Observable<any> {
+    // Seuls nomProjet & description sont envoyés (createurId vient du JWT côté serveur)
+    const token = this.authService.getToken();                               // Added: get JWT from storage
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`); // Added: build auth header
+
+    return this.http.post<any>(
+      this.apiUrl,
+      {
+        nomProjet: projet.nomProjet,
+        description: projet.description
+      },
+      { headers }                                                             // Added: send header with request
+    );
+  }
+
+  /* // 🔹 Créer un nouveau projet
   createProjet(projet: any): Observable<any> {
     return this.http.post(this.apiUrl, projet);
   }
+  */
 
   // 🔹 Mettre à jour un projet existant
   updateProjet(id: number, projet: any): Observable<any> {

@@ -1,10 +1,10 @@
-// config/db.js
+// db.js (à placer à la racine de votre dossier nodejs)
 const mysql = require('mysql2');
 
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '@Ismaeliyo10',
+  password: 'MdMNB01010192@',
   database: 'recruitmiage'
 });
 
@@ -14,6 +14,7 @@ db.connect((err) => {
     return;
   }
   console.log('✅ Connexion à la base de données établie');
+  connection.release();
 });
 
-module.exports = db;
+module.exports = pool; // Changed: export pool, not undefined `db`
