@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db.js');
+const db = require('../db');
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = 'RECRUIT_SECRET_KEY_JWT_2025'; // à stocker en .env plus tard
 
-/*/ Route de login
+// 🔹 Route de login
 router.post('/login', (req, res) => {
   const { User, password } = req.body;
 
@@ -34,42 +34,24 @@ router.post('/login', (req, res) => {
   });
 });
 
-module.exports = router;*/
-
-// POST /api/auth/login
-router.post('/login', (req, res) => {
-  console.log('Login payload:', req.body); // Added: debug log incoming body
-  const { User, password } = req.body; // Updated: use User field matching client payload
-  if (!User || !password) { // Updated: validate both fields
-    return res.status(400).json({ success: false, error: 'User et mot de passe requis.' });
+// 🔹 **Nouvelle route** : Vérification de l'existence d'un utilisateur pour "mot de passe oublié"
+router.post('/verify-user', (req, res) => { // Added
+  const { username } = req.body;             // Added
+  if (!username) {                           // Added
+    return res.status(400).json({ success: false, error: 'Nom d\'utilisateur requis.' }); // Added
   }
-
-  const query = 'SELECT Identifiant, User, Password FROM personnel WHERE User = ?';
-  db.execute(query, [User], (err, results) => {
-    if (err) {
-      console.error('Erreur SQL login :', err);
-      return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
+  const sql = 'SELECT Identifiant FROM Personnel WHERE User = ?'; // Added
+  db.execute(sql, [username], (err, results) => {               // Added
+    if (err) {                                                 // Added
+      console.error('❌ Erreur SQL verify-user:', err);        // Added
+      return res.status(500).json({ success: false, error: 'Erreur SQL' }); // Added
     }
-    if (results.length === 0) {
-      return res.status(401).json({ success: false, error: 'Utilisateur non trouvé.' });
+    if (results.length === 0) {                                // Added
+      return res.status(404).json({ success: false, error: 'Utilisateur non trouvé.' }); // Added
     }
-
-    const userRow = results[0];
-    // Pour mot de passe en clair (non recommandé en prod)
-    if (password !== userRow.Password) {
-      return res.status(401).json({ success: false, error: 'Mot de passe incorrect.' });
-    }
-
-    // Génération du JWT
-    const token = jwt.sign(
-      { id: userRow.Identifiant, user: userRow.User },
-      SECRET_KEY,
-      { expiresIn: '2h' } // Restored original expiry
-    );
-
-    console.log('Login successful, issuing token for:', userRow.User); // Added: success log
-    res.status(200).json({ success: true, token }); // Unchanged: return token with 200 status
+    // Tout va bien : on renvoie success
+    res.status(200).json({ success: true });                   // Added
   });
 });
 
-module.exports = router; // export router
+module.exports = router;
