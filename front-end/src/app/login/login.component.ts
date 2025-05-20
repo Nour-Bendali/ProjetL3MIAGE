@@ -6,6 +6,12 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
+interface LoginResponse {
+  success: boolean;
+  token?: string;
+  error?: string;
+}
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -14,33 +20,45 @@ import { HttpClient } from '@angular/common/http';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  User: string = '';
-  password: string = '';
-  errorMessage: string = '';
+  User = '';            // champ utilisateur
+  password = '';        // champ mot de passe
+  errorMessage = '';    // message d'erreur affiché dans le template
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) {}
 
-  onSubmit() {
-    console.log('Formulaire soumis', { email: this.User, password: this.password });
+  onSubmit(): void {
+    // reset du message à chaque tentative
+    this.errorMessage = '';
 
-    // 📡 Appel API pour la connexion
-    this.http.post('http://localhost:3000/api/auth/login', { User: this.User, password: this.password })
+    this.http
+      .post<LoginResponse>(
+        'http://localhost:3000/api/auth/login',
+        { User: this.User, password: this.password }
+      )
       .subscribe({
-        next: (response: any) => {
-          if (response.success) {
-            console.log('Connexion réussie');
-            // Stocker l'Identifiant dans localStorage
-            const userId = response.userId; // Récupérer l'Identifiant envoyé par le serveur
-            localStorage.setItem('userId', userId);
-            this.router.navigate(['/dashboard-folders']); // 📋 Redirection vers /dashboard-projects
+        next: res => {
+          if (res.success && res.token) {
+            // stocker le JWT
+            localStorage.setItem('jwt_token', res.token);
+            // redirection
+            this.router.navigate(['/dashboard-folders']);
           } else {
-            console.log('Identifiants incorrects');
-            this.errorMessage = 'Nom d\'Utilisateur ou mot de passe incorrect.';
+            // cas où backend renvoie { success: false, error: '...' }
+            this.errorMessage = res.error || 'Utilisateur ou mot de passe invalide.';
           }
         },
-        error: (error) => {
-          console.error('Erreur lors de la connexion', error);
-          this.errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
+        error: err => {
+          console.error('Erreur lors de la connexion', err);
+          // si 401 Unauthorized, afficher message d'identifiants invalides
+          if (err.status === 401) {
+            this.errorMessage = 'Utilisateur ou mot de passe invalide.';
+          } else {
+            // autre erreur (réseau, serveur, etc.)
+            this.errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
+          }
         }
       });
   }

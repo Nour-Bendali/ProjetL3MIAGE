@@ -1,40 +1,128 @@
-<div class="mission-list">
-  <div *ngIf="errorMessage" class="alert alert-danger">
+<!-- Conteneur principal -->
+<section class="mission-list">
+  <!-- Message d'erreur -->
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
     {{ errorMessage }}
   </div>
 
-  <div *ngIf="!errorMessage">
-    <div *ngFor="let mission of missions" class="mission-card">
-      <h3>{{ mission.NomMission }}</h3>
-      <p *ngIf="mission.Description">{{ mission.Description }}</p>
-      
-      <div class="mission-details">
-        <p><strong>Date de création :</strong> {{ mission.DateCreation | date:'dd/MM/yyyy' }}</p>
-        
-        <div *ngIf="mission.membres_assignes?.length" class="mission-members">
-          <h4>Membres assignés :</h4>
-          <ul>
-            <li *ngFor="let membre of mission.membres_assignes">{{ membre }}</li>
-          </ul>
-        </div>
+  <!-- Bouton Rafraîchir manuel -->
+  <button
+    class="btn btn-sm btn-secondary mb-2"
+    (click)="refreshMissions()"
+    [disabled]="isLoading"
+  >
+    🔄 Rafraîchir
+  </button>
 
-        <div *ngIf="mission.competences_requises?.length" class="mission-skills">
-          <h4>Compétences requises :</h4>
-          <ul>
-            <li *ngFor="let competence of mission.competences_requises">{{ competence }}</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="mission-actions">
-        <button class="btn btn-danger" (click)="deleteMission(mission.IdMission)">
-          Supprimer
-        </button>
-      </div>
+  <!-- Liste des missions -->
+  <div *ngIf="!errorMessage" class="missions-container">
+    <!-- Message si aucune mission -->
+    <div *ngIf="missions.length === 0" class="no-missions">
+      <p>Aucune mission n'est actuellement assignée à ce projet.</p>
     </div>
 
-    <div *ngIf="missions.length === 0" class="no-missions">
-      Aucune mission n'est actuellement assignée à ce projet.
+    <!-- Liste des missions -->
+    <div *ngIf="missions.length > 0" class="missions-grid">
+      <article *ngFor="let mission of missions" class="mission-card">
+        <!-- En-tête de la mission -->
+        <header class="mission-header">
+          <h3 class="mission-title">{{ mission.NomMission }}</h3>
+          <p *ngIf="mission.Description" class="mission-description">
+            {{ mission.Description }}
+          </p>
+        </header>
+
+        <!-- Détails de la mission -->
+        <div class="mission-content">
+          <div class="mission-info">
+            <p class="mission-date">
+              <i class="fas fa-calendar"></i>
+              <strong>Date de création :</strong> 
+              {{ mission.DateCreation | date:'dd/MM/yyyy' }}
+            </p>
+          </div>
+
+          <!-- Composant d’assignation -->
+          <section class="mission-section">
+            <h4 class="section-title">Assigner un membre</h4>
+            <div class="mission-members">
+              <app-mission-assign 
+                *ngIf="projectId"
+                [selectedMissionId]="mission.IdMission" 
+                [projectId]="projectId"
+                class="mission-assign-component"
+                (missionAssigned)="onMissionAssigned()">
+              </app-mission-assign>
+            </div>
+          </section>
+
+          <!-- Liste des membres déjà assignés -->
+          <section *ngIf="mission.membres_assignes?.length" class="mission-section">
+            <h4 class="section-title">Membres assignés</h4>
+            <ul class="members-list">
+              <li *ngFor="let membre of mission.membres_assignes" class="member-item d-flex justify-content-between align-items-center">
+                <span>
+                  {{ membre.Prenom }} {{ membre.Nom }}
+                  <small class="text-muted">({{ membre.User }})</small>
+                </span>
+                <button
+                  class="btn btn-sm btn-outline-danger ms-2"
+                  (click)="supprimerMembre(mission.IdMission, membre.Identifiant)"
+                  title="Retirer ce membre">
+                  <i class="fas fa-user-minus"></i>
+                </button>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Compétences requises -->
+          <section class="mission-section">
+            <h4 class="section-title">Compétences requises</h4>
+
+            <!-- Liste ou message -->
+            <ng-container *ngIf="mission.competences_requises && mission.competences_requises.length > 0; else aucuneCompetence">
+
+              <ul class="skills-list">
+                <li *ngFor="let competence of mission.competences_requises" class="skill-item d-flex justify-content-between align-items-center">
+                  <span>{{ competence.Competence }}</span>
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="supprimerCompetence(mission.IdMission, competence.IdCompetence)"
+                    title="Supprimer cette compétence">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </li>
+              </ul>
+            </ng-container>
+
+            <!-- Message si aucune compétence -->
+            <ng-template #aucuneCompetence>
+              <p class="text-muted fst-italic">Aucune compétence assignée à cette mission.</p>
+            </ng-template>
+
+            <!-- Assignateur de compétences -->
+            <div class="mt-2">
+              <p class="text-muted mb-1"><small>Ajouter une compétence</small></p>
+              <app-competences-assign 
+                [missionId]="mission.IdMission"
+                (competenceAssigned)="onMissionAssigned()"
+                class="competence-assign-component">
+              </app-competences-assign>
+            </div>
+          </section>
+        </div>
+
+        <!-- Actions -->
+        <footer class="mission-footer">
+          <button 
+            class="btn btn-danger" 
+            (click)="deleteMission(mission.IdMission)"
+            aria-label="Supprimer la mission">
+            <i class="fas fa-trash"></i>
+            Supprimer
+          </button>
+        </footer>
+      </article>
     </div>
   </div>
-</div>
+</section>

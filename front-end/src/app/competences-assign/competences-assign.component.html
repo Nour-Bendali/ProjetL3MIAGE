@@ -1,30 +1,32 @@
-<div class="container mt-4">
-  <h2>Assigner une compétence à une mission</h2>
-
-  <!-- Sélection de la mission -->
-  <div class="mb-3">
-    <label for="missionSelect" class="form-label">Mission :</label>
-    <select id="missionSelect" class="form-select" [(ngModel)]="selectedMissionId">
-      <option [ngValue]="null">-- Sélectionner une mission --</option>
-      <option *ngFor="let mission of missions" [ngValue]="mission.IdMission">
-        {{ mission.Titre }} (Projet : {{ mission.NomProjet }})
-      </option>
-    </select>
+<div class="competence-assign">
+  <!-- Affichage erreur -->
+  <div *ngIf="errorMessage" class="alert alert-danger p-1 mb-2" role="alert">
+    {{ errorMessage }}
   </div>
 
-  <!-- Sélection de la compétence -->
-  <div class="mb-3">
-    <label for="competenceSelect" class="form-label">Compétence :</label>
-    <select id="competenceSelect" class="form-select" [(ngModel)]="selectedCompetenceId">
+  <!-- Sélecteur de compétence -->
+  <div class="input-group input-group-sm mb-2">
+    <select
+      class="form-select"
+      [(ngModel)]="selectedCompetenceId"
+      [disabled]="isLoading">
       <option [ngValue]="null">-- Sélectionner une compétence --</option>
-      <option *ngFor="let competence of competences" [ngValue]="competence.IdentifiantC">
-        {{ competence.Competence }}
+      <option *ngFor="let c of competences" [ngValue]="c.IdentifiantC">
+        {{ c.Competence }}
       </option>
     </select>
+    <button
+      class="btn btn-sm btn-outline-primary"
+      (click)="assignCompetence()"
+      [disabled]="!selectedCompetenceId || isLoading">
+      <i
+        class="fas"
+        [class.fa-plus]="!isLoading"
+        [class.fa-spinner]="isLoading"
+        [class.fa-spin]="isLoading">
+      </i>
+      <span *ngIf="!isLoading">Ajouter</span>
+      <span *ngIf="isLoading">Ajout...</span>
+    </button>
   </div>
-
-  <!-- Bouton d'assignation -->
-  <button class="btn btn-primary" (click)="assignCompetence()" [disabled]="!selectedMissionId || !selectedCompetenceId">
-    Assigner la compétence
-  </button>
 </div>

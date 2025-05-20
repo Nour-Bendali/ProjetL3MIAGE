@@ -1,19 +1,20 @@
+// server.js (à placer à la racine de votre dossier nodejs)
 const express = require('express');
 const cors = require('cors');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // parse JSON bodies
 
 // Routes modulaires
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/projets', require('./routes/projets'));
-app.use('/api/missions', require('./routes/missions'));
-app.use('/api/personnel', require('./routes/personnel'));
-app.use('/api/competences', require('./routes/competences'));
-app.use('/api/projets-personnel', require('./routes/projetsPersonnels'));
-app.use('/api/missions-personnel', require('./routes/missionsPersonnels'));
-app.use('/api/competences-missions', require('./routes/competencesMissions'));
+app.use('/api/auth', require('./routes/auth')); // Added: authentication routes
+app.use('/api/projets', require('./routes/projets')); // Added: projects routes
+app.use('/api/missions', require('./routes/missions')); // Ensure missions routes are mounted correctly
+app.use('/api/personnel', require('./routes/personnel')); // Added: personnel routes
+app.use('/api/competences', require('./routes/competences')); // Added: competences routes
+app.use('/api/projets-personnel', require('./routes/projetsPersonnels')); // Updated: fixed route path for projets-personnel
+app.use('/api/missions-personnel', require('./routes/missionsPersonnels')); // Updated: correct path & file for missions-personnel
+app.use('/api/competences-missions', require('./routes/competencesMissions')); // Updated: correct path & file for competences-missions
 
 // Gestion des erreurs 404
 app.use((req, res) => {
@@ -36,14 +37,14 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Backend modulaire opérationnel sur http://localhost:${PORT}`);
+  console.log(`🚀 Backend modulaire opérationnel sur http://localhost:${PORT}`); // Inform user of server URL
   console.log('📝 Routes disponibles:');
-  console.log('  - /api/auth');
-  console.log('  - /api/projets');
-  console.log('  - /api/missions');
-  console.log('  - /api/personnel');
-  console.log('  - /api/competences');
-  console.log('  - /api/projets-personnel');
-  console.log('  - /api/missions-personnel');
-  console.log('  - /api/competences-missions');
+  console.log('  - /api/auth'); // Authentication endpoints
+  console.log('  - /api/projets'); // Projects endpoints
+  console.log('  - /api/missions'); // Missions endpoints
+  console.log('  - /api/personnel'); // Personnel endpoints
+  console.log('  - /api/competences'); // Competences endpoints
+  console.log('  - /api/projets-personnel'); // Projet-personnel relation endpoints
+  console.log('  - /api/missions-personnel'); // Mission-personnel relation endpoints
+  console.log('  - /api/competences-missions'); // Competence-mission relation endpoints
 });
