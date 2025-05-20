@@ -3,7 +3,6 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { DashboardFoldersComponent } from './dashboard-folders/dashboard-folders.component';
-import { RegisterComponent } from './register/register.component';
 import { PersonnelComponent } from './personnel/personnel.component';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
@@ -15,30 +14,28 @@ import { MissionListComponent } from './mission-list/mission-list.component';
 import { MissionAssignComponent } from './mission-assign/mission-assign.component';
 import { CompetencesAssignComponent } from './competences-assign/competences-assign.component';
 
-
 export const routes: Routes = [
-  //  Redirige la racine vers '/login' (point d'entrée par défaut)
+  // Redirige la racine vers '/login' (point d'entrée par défaut)
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
-  //  Routes principales
+  // Routes principales
   { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
   { path: 'projets-form', component: ProjetsFormComponent },
   { path: 'projets-assign', component: ProjetsAssignComponent },
   { path: 'dashboard-folders', component: DashboardFoldersComponent },
-  { path: 'projets/:id/personnel', component: PersonnelComponent },
+  { path: 'projets/:id/personnel', component: PersonnelComponent, data: { renderMode: 'ssr' } },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
-  { path: 'mission-list', component: MissionListComponent},
-  { path: 'projets/:id/missions', component: MissionListComponent },
+  { path: 'mission-list', component: MissionListComponent },
+  { path: 'projets/:id/missions', component: MissionListComponent, data: { renderMode: 'ssr' } },
   { path: 'competences-assign', component: CompetencesAssignComponent },
   // ✅ Routes pour les projets
-  { path: 'projets/:id', component: ProjetComponent }, // Vue principale d'un projet
+  { path: 'projets/:id', component: ProjetComponent, data: { renderMode: 'ssr' } }, // Vue principale d'un projet
   //{ path: 'projet-form/:id', component: ProjetsFormComponent }, // Formulaire pour gérer les membres
 
-  {path: 'mission-form', component: MissionFormComponent},
+  { path: 'mission-form', component: MissionFormComponent },
   { path: 'mission-assign', component: MissionAssignComponent },
 
-  //  Route catch-all pour rediriger vers login si chemin inconnu
+  // Route catch-all pour rediriger vers login si chemin inconnu
   { path: '**', redirectTo: 'login' }
 ];

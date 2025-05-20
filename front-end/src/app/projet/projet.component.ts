@@ -1,104 +1,71 @@
 // src/app/projet/projet.component.ts
 
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { Location } from '@angular/common';
-import { MissionFormComponent } from '../mission-form/mission-form.component';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { ProjetService } from '../services/projet.service';
 import { MissionListComponent } from '../mission-list/mission-list.component';
-import { Mission } from '../services/mission.service';
-
-import {
-  ProjetService,
-  PersonnelWithCompetences
-} from '../services/projet.service';
-
-interface Projet {
-  IdProjet: number;
-  NomProjet: string;
-  Description: string;
-  CreateurId: number;
-  DateCreation: string;
-  missions?: Mission[];
-}
+import { MissionFormComponent } from '../mission-form/mission-form.component';
 
 @Component({
   selector: 'app-projet',
   standalone: true,
-  imports: [CommonModule, RouterModule, MissionFormComponent, MissionListComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    MissionListComponent,    // Added: mission list sub-component
+    MissionFormComponent     // Added: mission form sub-component
+  ],
   templateUrl: './projet.component.html',
   styleUrls: ['./projet.component.css']
 })
 export class ProjetComponent implements OnInit {
-  @ViewChild(MissionListComponent) missionList!: MissionListComponent;
-
-  projet: Projet | null = null;
-  membres: PersonnelWithCompetences[] = [];
-  projectId!: number;
-  errorMessage: string | null = null;
+  projectId!: number;                       // Added: store route ID
+  projet: any;                              // Added: project details
+  membres: any[] = [];                      // Added: project members
+  errorMessage: string | null = null;       // Added: error handling
 
   constructor(
-    private route: ActivatedRoute,
-    private http: HttpClient,
-    private projetService: ProjetService,
-    private location: Location
+    private route: ActivatedRoute,          // Added: to read route params
+    private router: Router,                 // Added: to navigate back
+    private projetService: ProjetService    // Added: to fetch data
   ) {}
 
   ngOnInit(): void {
-    this.projectId = +this.route.snapshot.paramMap.get('id')!;
-    this.loadProjet();
-  }
-
-  retour(): void {
-    this.location.back();
-  }
-
-  private loadProjet(): void {
-    if (!this.projectId) {
-      this.errorMessage = 'ID de projet invalide.';
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (!idParam || isNaN(+idParam)) {
+      this.errorMessage = 'ID du projet invalide ou manquant.'; // Added
       return;
     }
-
-    this.http
-      .get<Projet>(`http://localhost:3000/api/projets/${this.projectId}`)
-      .subscribe({
-        next: project => {
-          this.projet = project;
-          console.log('✅ Projet chargé', this.projet);
-          // charger les membres dès que le projet est chargé
-          this.loadMembres();
-          // rafraîchir les missions via le composant enfant
-          this.missionList?.refreshMissions();
-        },
-        error: err => {
-          console.error('❌ Erreur lors du chargement du projet', err);
-          this.errorMessage = 'Impossible de charger le projet. Veuillez réessayer plus tard.';
-        }
-      });
+    this.projectId = +idParam;
+    this.loadProjet();
+    this.loadMembres();
   }
 
-  /** Charge la liste des membres avec leurs compétences */
-  private loadMembres(): void {
-    this.projetService.getProjectMembers(this.projectId).subscribe({
-      next: data => {
-        this.membres = data;
-      },
-      error: err => {
-        console.error('❌ Erreur lors du chargement des membres', err);
-      }
+  loadProjet(): void {
+    this.projetService.getProjetById(this.projectId).subscribe({
+      next: data => this.projet = data,                                     // Added
+      error: () => this.errorMessage = 'Impossible de charger le projet.'    // Added
     });
   }
 
-  // Méthode appelée quand les missions sont mises à jour par le composant enfant
-  onMissionsUpdated(missions: Mission[]): void {
-    if (this.projet) {
-      this.projet.missions = missions;
-    }
+  loadMembres(): void {
+    this.projetService.getProjectMembers(this.projectId).subscribe({
+      next: data => this.membres = data,                                    // Added
+      error: err => console.error('❌ Erreur chargement membres', err)       // Added
+    });
   }
 
-  // Méthode pour rafraîchir les missions
   refreshMissions(): void {
-    this.missionList?.loadMissions();
+    // Called when a new mission is created to refresh list
+    // No-op here; MissionListComponent handles its own refresh
+  }
+
+  onMissionsUpdated(missions: any[]): void {
+    // Optional: respond to missionsUpdated event
+  }
+
+  retour(): void {
+    this.router.navigate(['/dashboard-folders']); // Added: back to dashboard
   }
 }

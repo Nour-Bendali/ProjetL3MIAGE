@@ -1,21 +1,109 @@
-/* src/app/personnel/personnel.component.css */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+body {
+  background: #1e3c72;
+  margin: 0;
+  min-height: 100vh;
+}
 
 .container {
-    padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+  animation: fadeIn 1s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 50px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 600px;
+    transform: translateY(0);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
-  
-  .table {
-    margin-top: 20px;
-  }
-  
-  .alert {
-    margin-bottom: 20px;
-  }
-  
-  .form-control {
-    max-width: 100%;
-  }
-  
-  .btn-sm {
-    padding: 5px 10px;
-  }
+
+.login-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #2a5298;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+}
+
+h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #2a5298;
+  margin-bottom: 20px;
+}
+
+.form-select {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-right: 10px;
+}
+
+.btn {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 10px 20px;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.btn-primary {
+  color: white;
+  background: linear-gradient(90deg, #d4af37, #f1c40f);
+  border: none;
+}
+
+.btn-primary:hover {
+  transform: scale(1.05);
+  background: linear-gradient(90deg, #f1c40f, #d4af37);
+}
+
+.btn-secondary {
+  color: white;
+  background: #a0aec0;
+  border: none;
+}
+
+.btn-secondary:hover {
+  background: #718096;
+}
+
+.btn-danger {
+  color: white;
+  background: #e3342f;
+  border: none;
+}
+
+.btn-danger:hover {
+  background: #cc1f1a;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}

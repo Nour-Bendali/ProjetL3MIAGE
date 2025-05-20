@@ -1,13 +1,18 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { Router, RouterModule } from '@angular/router';            // Added: RouterModule
+import { HttpClient, HttpClientModule } from '@angular/common/http'; // Added: HttpClientModule
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-forgot-password',
-  standalone: true, // ✅ Composant autonome
-  imports: [FormsModule, CommonModule], // ✅ Import des modules nécessaires
+  standalone: true, 
+  imports: [
+    FormsModule,
+    CommonModule,
+    HttpClientModule,   // Added
+    RouterModule        // Added
+  ],
   templateUrl: './forgot-password.component.html'
 })
 export class ForgotPasswordComponent {
@@ -17,19 +22,25 @@ export class ForgotPasswordComponent {
   constructor(private http: HttpClient, private router: Router) {}
 
   /**
-   * Cette méthode est appelée lors de la soumission du formulaire.
-   * Elle envoie le nom d'utilisateur (ou email) au backend pour vérification.
+   * Appel à l’API pour vérifier que l’utilisateur existe.
    */
   verifyUser() {
-    this.http.post('http://localhost:3000/api/verify-user', { username: this.username })
+    this.errorMessage = ''; // Added: réinitialiser le message d'erreur
+    this.http
+      .post<{ success: boolean }>(
+        'http://localhost:3000/api/auth/verify-user', // Updated: route correcte sous /api/auth
+        { username: this.username }                    // body unchanged
+      )
       .subscribe({
         next: () => {
+          // Si trouvé, on redirige vers reset-password
           this.router.navigate(['/reset-password'], {
             state: { username: this.username }
           });
         },
-        error: () => {
-          this.errorMessage = 'Utilisateur non trouvé.';
+        error: (err) => {
+          console.error('❌ Erreur verify-user:', err); 
+          this.errorMessage = 'Utilisateur non trouvé.'; // Updated message
         }
       });
   }

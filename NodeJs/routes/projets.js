@@ -1,10 +1,12 @@
+// routes/projets.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const authenticateJWT = require('./authJwt'); // Added: import JWT auth middleware from same folder
 
 // 🔹 Liste des projets
 router.get('/', (req, res) => {
-  db.execute('SELECT * FROM Projets', (err, results) => {
+  db.execute('SELECT * FROM projets', (err, results) => { // Updated: use lowercase table name to match schema
     if (err) return res.status(500).json({ error: 'Erreur SQL' });
     res.json(results);
   });
@@ -13,7 +15,7 @@ router.get('/', (req, res) => {
 // 🔹 Détails d’un projet
 router.get('/:id', (req, res) => {
   const id = req.params.id;
-  db.execute('SELECT * FROM Projets WHERE IdProjet = ?', [id], (err, results) => {
+  db.execute('SELECT * FROM projets WHERE IdProjet = ?', [id], (err, results) => { // Updated: lowercase table name
     if (err) return res.status(500).json({ error: 'Erreur SQL' });
     if (results.length === 0) return res.status(404).json({ error: 'Projet introuvable' });
     res.json(results[0]);
@@ -38,26 +40,35 @@ router.get('/:id/missions', (req, res) => {
   });
 });
 
-// 🔹 Création d’un projet
-router.post('/', (req, res) => {
-  const { nomProjet, description, createurId } = req.body;
-  if (!nomProjet || !description || !createurId) {
-    return res.status(400).json({ error: 'Champs requis' });
+// 🔹 Création d’un projet (protégée par JWT)
+router.post('/', authenticateJWT, (req, res) => { // Added: protect this route with JWT middleware
+  const { nomProjet, description } = req.body; // Added: only extract project name and description from body
+  console.log('Request body:', req.body); // Added: debug log request body
+  console.log('Authenticated user ID:', req.user?.id); // Added: debug log authenticated user ID
+  if (!nomProjet || !description) { // Updated: validate required fields
+    return res.status(400).json({ error: 'Nom du projet et description requis.' }); // Added: adjusted error message
   }
+  const createurId = req.user.id; // Added: retrieve creator ID from decoded JWT payload
 
-  const query = 'INSERT INTO Projets (NomProjet, Description, CreateurId, DateCreation) VALUES (?, ?, ?, CURDATE())';
+  const query = 'INSERT INTO projets (NomProjet, Description, CreateurId, DateCreation) VALUES (?, ?, ?, CURDATE())'; // Updated: use lowercase table name
   db.execute(query, [nomProjet, description, createurId], (err, result) => {
-    if (err) return res.status(500).json({ error: 'Erreur lors de la création du projet' });
-    res.status(201).json({ success: true, id: result.insertId });
+    if (err) {
+      console.error('Erreur SQL création projet :', err);
+      return res.status(500).json({ // Updated: include error details in response for debugging
+        error: 'Erreur lors de la création du projet',
+        details: err.message // Added: return SQL error message
+      });
+    }
+    res.status(201).json({ success: true, id: result.insertId }); // Added: respond with new project ID
   });
 });
 
 // 🔹 Suppression d’un projet
 router.delete('/:id', (req, res) => {
   const id = req.params.id;
-  console.log("🛠️ ID reçu pour suppression :", id);
+  console.log('🛠️ ID reçu pour suppression :', id);
 
-  const query = 'DELETE FROM Projets WHERE IdProjet = ?';
+  const query = 'DELETE FROM projets WHERE IdProjet = ?'; // Updated: lowercase table name
   db.execute(query, [id], (err, result) => {
     if (err) {
       console.error('❌ Erreur lors de la suppression du projet :', err);
@@ -72,7 +83,6 @@ router.delete('/:id', (req, res) => {
   });
 });
 
-// ✅ Suppression d’une mission spécifique à un projet
 // 🔹 Suppression d’une mission liée à un projet
 router.delete('/:projectId/missions/:missionId', (req, res) => {
   const { projectId, missionId } = req.params;
@@ -97,6 +107,4 @@ router.delete('/:projectId/missions/:missionId', (req, res) => {
   });
 });
 
-
-module.exports = router;
-
+module.exports = router; // Added: export router for use in server.js

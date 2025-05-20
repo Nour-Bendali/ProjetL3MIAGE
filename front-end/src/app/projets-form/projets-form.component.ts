@@ -1,8 +1,9 @@
+// src/app/projets-form.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ProjetsFormService } from './projets-form.service';
+import { ProjetService, ProjetCreate } from '../services/projet.service'; // Updated import path
 
 @Component({
   selector: 'app-projets-form',
@@ -12,17 +13,17 @@ import { ProjetsFormService } from './projets-form.service';
   styleUrls: ['./projets-form.component.css']
 })
 export class ProjetsFormComponent implements OnInit {
-  nouveauProjet = { nomProjet: '', description: '', createurId: 1 };
+  nouveauProjet: ProjetCreate = { nomProjet: '', description: '' }; // Removed createurId, using ProjetCreate
   projets: any[] = [];
 
-  constructor(private projetsFormService: ProjetsFormService) {}
+  constructor(private projetService: ProjetService) {} // inject ProjetService
 
   ngOnInit(): void {
     this.loadProjets();
   }
 
   loadProjets(): void {
-    this.projetsFormService.getAllProjet().subscribe({
+    this.projetService.getAllProjets().subscribe({
       next: (data: any) => {
         this.projets = data;
       },
@@ -31,7 +32,7 @@ export class ProjetsFormComponent implements OnInit {
   }
 
   createProjet(): void {
-    this.projetsFormService.createProjet(this.nouveauProjet).subscribe({
+    this.projetService.createProjet(this.nouveauProjet).subscribe({
       next: (response: any) => {
         alert('✅ Projet créé avec succès !');
         console.log('✅ Projet créé avec succès', response);

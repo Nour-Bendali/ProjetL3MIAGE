@@ -1,11 +1,14 @@
+// src/app/mission-list/mission-list.component.ts
+
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule }                     from '@angular/common';
-import { HttpClientModule }                 from '@angular/common/http';
-import { RouterModule, ActivatedRoute }     from '@angular/router';
-import { take }                             from 'rxjs/operators';
-import { CompetencesAssignComponent }       from '../competences-assign/competences-assign.component';
+import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
+import { RouterModule, ActivatedRoute } from '@angular/router';
+import { take } from 'rxjs/operators';
 import { MissionService, Mission, Membre, Competence } from '../services/mission.service';
-import { MissionAssignComponent }           from '../mission-assign/mission-assign.component';
+import { MissionAssignComponent } from '../mission-assign/mission-assign.component';
+import { CompetencesAssignComponent } from '../competences-assign/competences-assign.component';
+
 @Component({
   selector: 'app-mission-list',
   standalone: true,
@@ -65,8 +68,8 @@ export class MissionListComponent implements OnInit {
         next: missions => {
           const missionPromises = missions.map(m =>
             Promise.all([
-              this.missionService.getMembresAvecCompetences(m.IdMission).pipe(take(1)).toPromise(),
-              this.missionService.getCompetencesRequises(m.IdMission).pipe(take(1)).toPromise()
+              this.missionService.getMembresParMission(m.IdMission).pipe(take(1)).toPromise(),   // Updated call
+              this.missionService.getCompetencesByMission(m.IdMission).pipe(take(1)).toPromise()
             ]).then(([membres, competences]) => ({
               ...m,
               membres_assignes: membres,
@@ -80,7 +83,7 @@ export class MissionListComponent implements OnInit {
             this.isLoading = false;
           });
         },
-        error: () => {
+        error: (err: any) => {  // Added explicit any
           this.errorMessage = 'Impossible de charger les missions.';
           this.isLoading = false;
         }
@@ -119,11 +122,6 @@ export class MissionListComponent implements OnInit {
     this.refreshMissions();
   }
 
-  onMissionCreated(): void {
-    this.missionCree.emit();
-    this.loadMissions();
-  }
-
   deleteMission(id: number): void {
     if (!this.projectId) return;
     if (!confirm('Supprimer cette mission ?')) return;
@@ -131,7 +129,7 @@ export class MissionListComponent implements OnInit {
     this.missionService.deleteMission(this.projectId, id)
       .subscribe({
         next: () => this.loadMissions(),
-        error: () => {
+        error: (err: any) => {  // Added explicit any
           this.errorMessage = 'Impossible de supprimer la mission.';
           this.isLoading = false;
         }
@@ -139,29 +137,27 @@ export class MissionListComponent implements OnInit {
   }
 
   supprimerMembre(missionId: number, personnelId: number): void {
-    const confirmation = confirm('Retirer ce membre de la mission ?');
-    if (!confirmation) return;
+    if (!confirm('Retirer ce membre de la mission ?')) return;
 
-    this.missionService.deleteMembreDeMission(missionId, personnelId)
+    this.missionService.deleteMembreDeMission(missionId, personnelId)  // Updated call
       .pipe(take(1))
       .subscribe({
         next: () => this.refreshMissions(),
-        error: err => {
-          console.error('Erreur suppression membre:', err);
+        error: (err: any) => {  // Added explicit any
+          console.error('❌ Erreur suppression membre:', err);
           this.errorMessage = 'Impossible de supprimer ce membre.';
         }
       });
   }
 
   supprimerCompetence(missionId: number, competenceId: number): void {
-    const confirmation = confirm('Supprimer cette compétence de la mission ?');
-    if (!confirmation) return;
+    if (!confirm('Supprimer cette compétence de la mission ?')) return;
 
     this.missionService.deleteCompetenceFromMission(missionId, competenceId)
       .pipe(take(1))
       .subscribe({
         next: () => this.refreshMissions(),
-        error: err => {
+        error: (err: any) => {  // Added explicit any
           console.error('Erreur suppression compétence:', err);
           this.errorMessage = 'Impossible de supprimer la compétence.';
         }

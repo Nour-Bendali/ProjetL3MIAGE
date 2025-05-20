@@ -1,9 +1,10 @@
+// server.js (placer à la racine de votre dossier nodejs)
 const express = require('express');
 const cors = require('cors');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // parse JSON bodies
 
 // Routes modulaires
 app.use('/api/auth', require('./routes/auth'));
@@ -19,7 +20,7 @@ app.use('/api/competences-missions', require('./routes/competencesMissions'));
 app.use((req, res) => {
   res.status(404).json({ 
     success: false, 
-    error: 'Route non trouvée',
+    error: 'Route non trouvée', 
     path: req.originalUrl 
   });
 });
@@ -29,7 +30,7 @@ app.use((err, req, res, next) => {
   console.error('❌ Erreur serveur:', err);
   res.status(500).json({ 
     success: false, 
-    error: 'Erreur interne du serveur',
+    error: 'Erreur interne du serveur', 
     message: err.message 
   });
 });
