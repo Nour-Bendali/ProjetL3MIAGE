@@ -3,10 +3,9 @@ import { CommonModule }                     from '@angular/common';
 import { HttpClientModule }                 from '@angular/common/http';
 import { RouterModule, ActivatedRoute }     from '@angular/router';
 import { take }                             from 'rxjs/operators';
-import { CompetencesAssignComponent } from '../competences-assign/competences-assign.component';
+import { CompetencesAssignComponent }       from '../competences-assign/competences-assign.component';
 import { MissionService, Mission, Membre, Competence } from '../services/mission.service';
 import { MissionAssignComponent }           from '../mission-assign/mission-assign.component';
-
 @Component({
   selector: 'app-mission-list',
   standalone: true,
@@ -15,7 +14,7 @@ import { MissionAssignComponent }           from '../mission-assign/mission-assi
     HttpClientModule,
     RouterModule,
     MissionAssignComponent,
-    CompetencesAssignComponent
+    CompetencesAssignComponent,
   ],
   templateUrl: './mission-list.component.html',
   styleUrls: ['./mission-list.component.css']
@@ -66,8 +65,8 @@ export class MissionListComponent implements OnInit {
         next: missions => {
           const missionPromises = missions.map(m =>
             Promise.all([
-              this.missionService.getMembresParMission(m.IdMission).pipe(take(1)).toPromise(),
-              this.missionService.getCompetencesByMission(m.IdMission).pipe(take(1)).toPromise()
+              this.missionService.getMembresAvecCompetences(m.IdMission).pipe(take(1)).toPromise(),
+              this.missionService.getCompetencesRequises(m.IdMission).pipe(take(1)).toPromise()
             ]).then(([membres, competences]) => ({
               ...m,
               membres_assignes: membres,
@@ -76,7 +75,7 @@ export class MissionListComponent implements OnInit {
           );
 
           Promise.all(missionPromises).then(missionsAvecTout => {
-            this.missions = missionsAvecTout; // ✅ Pas de transformation destructrice ici
+            this.missions = missionsAvecTout;
             this.missionsUpdated.emit(this.missions);
             this.isLoading = false;
           });
@@ -89,7 +88,31 @@ export class MissionListComponent implements OnInit {
   }
 
   refreshMissions(): void {
-    this.loadMissions();
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.missions = [];
+
+    this.missionService.getMissionsByProjet(this.projectId!).subscribe({
+      next: async (missions: any[]) => {
+        for (const mission of missions) {
+          const [competences, membres] = await Promise.all([
+            this.missionService.getCompetencesRequises(mission.IdMission).toPromise(),
+            this.missionService.getMembresAvecCompetences(mission.IdMission).toPromise()
+          ]);
+
+          mission.competences_requises = competences;
+          mission.membres_assignes = membres;
+        }
+
+        this.missions = missions;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.errorMessage = "Erreur lors du chargement des missions.";
+        console.error(err);
+        this.isLoading = false;
+      }
+    });
   }
 
   onMissionAssigned(): void {
@@ -124,7 +147,7 @@ export class MissionListComponent implements OnInit {
       .subscribe({
         next: () => this.refreshMissions(),
         error: err => {
-          console.error('❌ Erreur suppression membre:', err);
+          console.error('Erreur suppression membre:', err);
           this.errorMessage = 'Impossible de supprimer ce membre.';
         }
       });
@@ -139,9 +162,18 @@ export class MissionListComponent implements OnInit {
       .subscribe({
         next: () => this.refreshMissions(),
         error: err => {
-          console.error('❌ Erreur suppression compétence:', err);
+          console.error('Erreur suppression compétence:', err);
           this.errorMessage = 'Impossible de supprimer la compétence.';
         }
       });
   }
+
+  isAdequat(membre: any, competencesMission: any[] | undefined): boolean {
+    if (!competencesMission || !membre?.competences) return false;
+  
+    return competencesMission.some((req: any) =>
+      membre.competences.some((c: any) => c.id === req.IdCompetence)
+    );
+  }
+  
 }

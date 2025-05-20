@@ -68,7 +68,7 @@ export class MissionAssignComponent implements OnInit {
     // APPEL CORRIGÉ : POST /api/missions/:id/assign
     this.http
       .post<{ success: boolean }>(
-        `http://localhost:3000/api/missions/${this.selectedMissionId}/assign`,
+        `http://localhost:3000/api/missions-personnel/${this.selectedMissionId}/assign`,
         { idPersonnel: this.selectedPersonnelId }
       )
       .subscribe({

@@ -15,6 +15,6 @@ export class CompetenceService {
   }
 
   assignCompetenceToMission(idMission: number, idCompetence: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/missions/${idMission}/competences`, { idCompetence });
+    return this.http.post(`${this.baseUrl}/competences-missions/${idMission}/competences`, { idCompetence });
   }
 }

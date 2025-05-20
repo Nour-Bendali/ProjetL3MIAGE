@@ -64,7 +64,17 @@
                 <span>
                   {{ membre.Prenom }} {{ membre.Nom }}
                   <small class="text-muted">({{ membre.User }})</small>
+                
+                  <span 
+                    [ngClass]="{
+                      'badge bg-success': isAdequat(membre, mission.competences_requises),
+                      'badge bg-danger': !isAdequat(membre, mission.competences_requises)
+                    }"
+                    class="ms-2">
+                    {{ isAdequat(membre, mission.competences_requises) ? 'Adéquat' : 'Inadéquat' }}
+                  </span>
                 </span>
+                
                 <button
                   class="btn btn-sm btn-outline-danger ms-2"
                   (click)="supprimerMembre(mission.IdMission, membre.Identifiant)"

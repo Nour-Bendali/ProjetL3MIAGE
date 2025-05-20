@@ -7,6 +7,7 @@ export interface Membre {
   Prenom: string;
   Nom: string;
   User: string;
+  competences?: { id: number; nom: string }[]; // pour adéquation
 }
 
 export interface Mission {
@@ -19,12 +20,10 @@ export interface Mission {
   competences_requises?: Competence[];
 }
 
-
 export interface Competence {
   IdCompetence: number;
   Competence: string;
 }
-
 
 @Injectable({
   providedIn: 'root'
@@ -34,7 +33,6 @@ export class MissionService {
 
   constructor(private http: HttpClient) {}
 
-  // vos méthodes existantes
   getMissionsByProjet(projectId: number): Observable<Mission[]> {
     return this.http.get<Mission[]>(`${this.apiUrl}/projets/${projectId}/missions`);
   }
@@ -47,35 +45,38 @@ export class MissionService {
     return this.http.delete(`${this.apiUrl}/projets/${projectId}/missions/${missionId}`);
   }
 
-  // récupération des membres pour l’assignation
   getPersonnelsByProjet(projectId: number): Observable<Membre[]> {
     return this.http.get<Membre[]>(`${this.apiUrl}/projets/${projectId}/personnels`);
   }
 
-  // nouvelle méthode d’assignation
   assignPersonnelToMission(missionId: number, idPersonnel: number): Observable<any> {
     return this.http.post(
-      `${this.apiUrl}/missions/${missionId}/assign`,
-      { idPersonnel }   // ⇐ exactement ce que votre backend attend
+      `${this.apiUrl}/missions-personnel/${missionId}/assign`,
+      { idPersonnel }
     );
   }
+
   getMembresParMission(missionId: number): Observable<Membre[]> {
-    return this.http.get<Membre[]>(`http://localhost:3000/api/missions/${missionId}/personnel`);
+    return this.http.get<Membre[]>(`${this.apiUrl}/missions-personnel/${missionId}/personnel`);
+  }
+
+  getMembresAvecCompetences(missionId: number): Observable<Membre[]> {
+    return this.http.get<Membre[]>(`${this.apiUrl}/missions-personnel/${missionId}/personnel/with-competences`);
   }
 
   deleteMembreDeMission(missionId: number, personnelId: number): Observable<any> {
-    return this.http.delete(
-      `http://localhost:3000/api/missions/${missionId}/${personnelId}`
-    );
+    return this.http.delete(`${this.apiUrl}/missions-personnel/${missionId}/${personnelId}`);
   }
 
-    // Récupérer les compétences assignées à une mission
   getCompetencesByMission(missionId: number): Observable<Competence[]> {
-    return this.http.get<Competence[]>(`http://localhost:3000/api/missions/${missionId}/competences`);
+    return this.http.get<Competence[]>(`${this.apiUrl}/competences-missions/${missionId}/competences`);
   }
 
-  // Supprimer une compétence d'une mission
+  getCompetencesRequises(missionId: number): Observable<Competence[]> {
+    return this.http.get<Competence[]>(`${this.apiUrl}/competences-missions/${missionId}/competences`);
+  }
+
   deleteCompetenceFromMission(missionId: number, competenceId: number): Observable<any> {
-    return this.http.delete(`http://localhost:3000/api/missions/${missionId}/competences/${competenceId}`);
+    return this.http.delete(`${this.apiUrl}/competences-missions/${missionId}/competences/${competenceId}`);
   }
 }

@@ -3,6 +3,54 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
+// GET /missions/:id/personnel/with-competences
+router.get('/:id/personnel/with-competences', (req, res) => {
+  const idMission = req.params.id;
+
+  const sql = `
+    SELECT 
+      p.Identifiant AS IdPersonnel,
+      p.Prenom,
+      p.Nom,
+      p.User,
+      c.IdentifiantC AS IdCompetence,
+      c.Competence,
+      cm.IdMission AS MissionWith
+    FROM MissionsPersonnel mp
+    JOIN Personnel p ON p.Identifiant = mp.IdPersonnel
+    LEFT JOIN CompetencesPersonnel cp ON cp.IdPersonnel = p.Identifiant
+    LEFT JOIN Competences c ON c.IdentifiantC = cp.IdCompetence
+    LEFT JOIN CompetencesMissions cm ON cm.IdMission = mp.IdMission
+    WHERE mp.IdMission = ?
+  `;
+
+  db.execute(sql, [idMission], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Erreur SQL' });
+
+    const map = new Map();
+    rows.forEach(r => {
+      if (!map.has(r.IdPersonnel)) {
+        map.set(r.IdPersonnel, {
+          Identifiant: r.IdPersonnel,
+          Prenom: r.Prenom,
+          Nom: r.Nom,
+          User: r.User,
+          competences: []
+        });
+      }
+      if (r.IdCompetence) {
+        map.get(r.IdPersonnel).competences.push({
+          id: r.IdCompetence,
+          nom: r.Competence
+        });
+      }
+    });
+
+    res.status(200).json([...map.values()]);
+  });
+});
+
+
 /**
  * GET /api/missions/:id/personnel
  *   Récupère les membres déjà assignés à une mission
