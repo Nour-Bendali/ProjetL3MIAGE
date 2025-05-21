@@ -49,15 +49,17 @@ export class AuthService {
     );
   }
 
-  /** 📥 Récupère le JWT du localStorage */
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    if (typeof window === 'undefined') {
+      return null; // ✅ Sécurité SSR : pas de localStorage côté serveur
+    }
+     return localStorage.getItem('token');
   }
 
   /** 📤 Stocke le JWT dans localStorage */
   setToken(token: string): void {
-    localStorage.setItem(this.TOKEN_KEY, token);
-  }
+  localStorage.setItem('token', token);
+}
 
   /** ❌ Supprime le JWT (logout) */
   logout(): void {

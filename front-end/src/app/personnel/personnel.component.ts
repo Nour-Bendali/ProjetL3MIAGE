@@ -57,7 +57,7 @@ export class PersonnelComponent implements OnInit {
         this.isCreator  = this.userId === this.createurId;
       },
       error: () => {
-        this.message = 'Erreur chargement projet.';
+        this.message = 'erreur chargement projet';
         alert(this.message);
       }
     });
@@ -83,7 +83,7 @@ export class PersonnelComponent implements OnInit {
         this.updateAvailable();
       },
       error: () => {
-        this.message = 'Erreur chargement membres assignés.';
+        this.message = 'erreur personnels ';
         alert(this.message);
       }
     });

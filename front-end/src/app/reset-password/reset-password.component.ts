@@ -1,5 +1,5 @@
 // src/app/reset-password/reset-password.component.ts
-
+import {ActivatedRoute} from '@angular/router';
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -19,22 +19,22 @@ export class ResetPasswordComponent implements OnInit {
   username: string = '';
   errorMessage: string = '';
   successMessage: string = '';
-  isLoading: boolean = false;
+  isLoading: boolean = false; 
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    // 🔐 Récupère le nom d'utilisateur depuis history.state
-    this.username = history.state.username || '';
-    if (!this.username) {
-      // Pas de username => retour au login
-      this.router.navigate(['/login']);
-    }
+    this.route.queryParams.subscribe(params => {
+      this.username = params['username'] || '';
+      if (!this.username) {
+        this.router.navigate(['/login']);
+      }
+    });
   }
-
   /**
    * 🔁 Envoie la nouvelle password au backend pour mise à jour
    */
@@ -65,7 +65,7 @@ export class ResetPasswordComponent implements OnInit {
         },
         error: (err) => {
           this.isLoading = false;
-          console.error('❌ Erreur reset-password:', err);
+          console.error('Erreur reset-password:', err);
           this.errorMessage = err.error?.error || 'Erreur lors de la modification du mot de passe.';
         }
       });

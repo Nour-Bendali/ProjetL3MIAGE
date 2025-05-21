@@ -46,7 +46,9 @@ export class ProjetService {
 
   // 🔹 Récupérer un projet par son ID
   getProjetById(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${id}`);
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.get<any>(`${this.apiUrl}/${id}`, { headers });
   }
 
   // 🔹 Récupérer missions d’un projet

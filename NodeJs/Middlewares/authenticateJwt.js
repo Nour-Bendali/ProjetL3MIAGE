@@ -11,9 +11,10 @@ function authenticateJWT(req, res, next) {
   const token = authHeader.split(' ')[1];
   jwt.verify(token, SECRET_KEY, (err, decoded) => {
     if (err) return res.status(403).json({ error: 'Token invalide.' });
-    req.user = decoded;    // Added: store decoded token payload in req.user
+    console.log('✅ Token payload déchiffré :', decoded); // ← Ajoute ça
+    req.user = decoded;
     next();
-  });
+  });  
 }
 
 module.exports = authenticateJWT; // Added: export middleware

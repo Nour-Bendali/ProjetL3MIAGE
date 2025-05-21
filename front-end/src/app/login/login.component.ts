@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import {AuthService} from '../auth.service'
 
 interface LoginResponse {
   success: boolean;
@@ -26,7 +27,8 @@ export class LoginComponent {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   onSubmit(): void {
@@ -43,6 +45,8 @@ export class LoginComponent {
           if (res.success && res.token) {
             // stocker le JWT
             localStorage.setItem('jwt_token', res.token);
+            this.authService.setToken(res.token);
+
             // redirection
             this.router.navigate(['/dashboard-folders']);
           } else {

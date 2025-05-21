@@ -70,7 +70,7 @@ router.get('/:id/personnel', (req, res) => {
   `;
   db.execute(sql, [missionId], (err, rows) => {
     if (err) {
-      console.error('❌ Erreur SQL:', err);
+      console.error('Erreur SQL:', err);
       return res.status(500).json({ error: 'Erreur SQL', details: err.message });
     }
     // Même si rows === [], renvoyer tableau vide
@@ -95,7 +95,7 @@ router.post('/:id/assign', (req, res) => {
       if (err.code === 'ER_DUP_ENTRY') {
         return res.status(409).json({ message: 'Ce membre est déjà assigné' });
       }
-      console.error('❌ Erreur SQL:', err);
+      console.error('Erreur SQL:', err);
       return res.status(500).json({ error: 'Erreur SQL', details: err.message });
     }
     res.status(201).json({ success: true });
@@ -112,7 +112,7 @@ router.delete('/:id/:personnelId', (req, res) => {
   const sql = `DELETE FROM MissionsPersonnel WHERE IdMission = ? AND IdPersonnel = ?`;
   db.execute(sql, [missionId, personnelId], err => {
     if (err) {
-      console.error('❌ Erreur SQL:', err);
+      console.error('Erreur SQL:', err);
       return res.status(500).json({ error: 'Erreur SQL', details: err.message });
     }
     res.status(200).json({ success: true });

@@ -30,21 +30,18 @@ export class ForgotPasswordComponent {
       return;
     }
     this.isLoading = true;
-    this.authService.verifyUser(this.username)
-      .subscribe({
-        next: () => {
-          this.isLoading = false;
-          this.router.navigate(['/reset-password'], { state: { username: this.username } });
-        },
-        error: (err: any) => {
-          this.isLoading = false;
-          if (err.status === 404) {
-            this.errorMessage = 'Utilisateur non trouvé.';
-          } else {
-            console.error('❌ Erreur verify-user:', err);
-            this.errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
-          }
+    this.authService.verifyUser(this.username).subscribe({
+      next: (response) => {
+        if (response.success) {
+          // Stocker temporairement le username
+          this.router.navigate(['/reset-password'], { queryParams: { username: this.username } });
+        } else {
+          this.errorMessage = "Utilisateur non reconnu.";
         }
-      });
+      },
+      error: () => {
+        this.errorMessage = "Erreur lors de la vérification.";
+      }
+    });
   }
 }

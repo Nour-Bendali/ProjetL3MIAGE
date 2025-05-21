@@ -3,17 +3,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-/**
- * GET    /api/projets-personnel/:id
- *   Lista los miembros asignados al proyecto
- * POST   /api/projets-personnel
- *   Añade un miembro al proyecto
- * DELETE /api/projets-personnel/:idProjet/:idPersonnel
- *   Elimina un miembro del proyecto
- */
-
 // 1) Listar miembros asignados
-router.get('/:id', (req, res) => {
+router.get('/:id',(req, res) => {
   const projectId = req.params.id;
   const sql = `
     SELECT
@@ -59,8 +50,8 @@ router.get('/:id', (req, res) => {
   });
 });
 
-// 2) Añadir un miembro
-router.post('/', (req, res) => {
+
+router.post('/',(req, res) => {
   const { IdProjet, IdPersonnel } = req.body;
   if (!IdProjet || !IdPersonnel) {
     return res.status(400).json({ error: 'Champs requis' });
@@ -75,7 +66,7 @@ router.post('/', (req, res) => {
   });
 });
 
-// 3) Eliminar un miembro
+
 router.delete('/:idProjet/:idPersonnel', (req, res) => {
   const { idProjet, idPersonnel } = req.params;
   const sql = 'DELETE FROM projetspersonnel WHERE IdProjet = ? AND IdPersonnel = ?';

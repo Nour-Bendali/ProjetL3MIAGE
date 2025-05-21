@@ -2,7 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
-const authenticateJWT = require('./authJwt'); // Added: import JWT auth middleware from same folder
+const authenticateJWT = require('../Middlewares/AuthenticateJwt'); // Added: import JWT auth middleware from same folder
+const canAccessProjet = require('../Middlewares/canAccessProjet'); // ajouter cette ligne
 
 // 🔹 Liste des projets
 router.get('/', (req, res) => {
@@ -13,11 +14,30 @@ router.get('/', (req, res) => {
 });
 
 // 🔹 Détails d’un projet
-router.get('/:id', (req, res) => {
-  const id = req.params.id;
-  db.execute('SELECT * FROM projets WHERE IdProjet = ?', [id], (err, results) => { // Updated: lowercase table name
-    if (err) return res.status(500).json({ error: 'Erreur SQL' });
-    if (results.length === 0) return res.status(404).json({ error: 'Projet introuvable' });
+// 🔹 Récupérer un projet (protégé, seulement si membre ou créateur)
+router.get('/:id', authenticateJWT, canAccessProjet, (req, res) => {
+  const rawId = req.params.id;
+  const projetId = parseInt(rawId, 10);
+
+  // Juste pour vérifier qu’on a bien le user décodé
+  console.log('Route /:id — req.user:', req.user);
+
+  if (isNaN(projetId) || projetId <= 0) {
+    return res.status(400).json({ error: 'ID de projet invalide.' });
+  }
+
+  // Ici on est déjà passé par canAccessProjet, donc req.user a été validé
+  db.execute('SELECT * FROM projets WHERE IdProjet = ?', [projetId], (err, results) => {
+    if (err) {
+      console.error('Erreur SQL dans route GET /:id:', err);
+      return res.status(500).json({ error: 'Erreur serveur.' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Projet introuvable.' });
+    }
+
+    console.log('📦 Projet retourné :', results[0]);
     res.json(results[0]);
   });
 });
@@ -33,7 +53,7 @@ router.get('/:id/missions', (req, res) => {
   `;
   db.execute(query, [id], (err, results) => {
     if (err) {
-      console.error('❌ Erreur lors de la récupération des missions :', err);
+      console.error('Erreur lors de la récupération des missions :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
     res.status(200).json(results);
@@ -64,24 +84,45 @@ router.post('/', authenticateJWT, (req, res) => { // Added: protect this route w
 });
 
 // 🔹 Suppression d’un projet
-router.delete('/:id', (req, res) => {
-  const id = req.params.id;
-  console.log('🛠️ ID reçu pour suppression :', id);
+router.delete('/:id', authenticateJWT, async (req, res) => {
+  const projetId = parseInt(req.params.id, 10);
+  const userId = req.user?.id;
 
-  const query = 'DELETE FROM projets WHERE IdProjet = ?'; // Updated: lowercase table name
-  db.execute(query, [id], (err, result) => {
-    if (err) {
-      console.error('❌ Erreur lors de la suppression du projet :', err);
-      return res.status(500).send({ error: err.message });
+  if (!userId || isNaN(projetId) || projetId <= 0) {
+    return res.status(400).json({ error: 'Requête invalide' });
+  }
+
+  try {
+    // 🔎 Vérifier si l'utilisateur est le créateur
+    const [projetResult] = await db.promise().query(
+      'SELECT CreateurId FROM projets WHERE IdProjet = ?',
+      [projetId]
+    );
+
+    if (projetResult.length === 0) {
+      return res.status(404).json({ error: 'Projet introuvable' });
     }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).send({ message: 'Projet non trouvé' });
+    const createurId = projetResult[0].CreateurId;
+
+    if (createurId !== userId) {
+      return res.status(403).json({ error: 'Seul le créateur peut supprimer ce projet.' });
     }
 
-    res.status(200).send({ message: 'Projet supprimé' });
-  });
+    // 🗑️ Supprimer le projet
+    await db.promise().query(
+      'DELETE FROM projets WHERE IdProjet = ?',
+      [projetId]
+    );
+
+    res.status(200).json({ message: 'Projet supprimé avec succès.' });
+
+  } catch (err) {
+    console.error('❌ Erreur lors de la suppression du projet :', err);
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression.' });
+  }
 });
+
 
 // 🔹 Suppression d’une mission liée à un projet
 router.delete('/:projectId/missions/:missionId', (req, res) => {
@@ -94,7 +135,7 @@ router.delete('/:projectId/missions/:missionId', (req, res) => {
 
   db.execute(query, [missionId, projectId], (err, result) => {
     if (err) {
-      console.error('❌ Erreur lors de la suppression de la mission :', err);
+      console.error('Erreur lors de la suppression de la mission :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
 

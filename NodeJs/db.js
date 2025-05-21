@@ -5,7 +5,7 @@ const mysql = require('mysql2');
 const pool = mysql.createPool({
   host: 'localhost',      // À adapter
   user: 'root',           // À adapter
-  password: '',           // À adapter
+  password: 'MdMNB01010192@',           // À adapter
   database: 'recruitmiage',
   waitForConnections: true,
   connectionLimit: 10,
@@ -15,10 +15,10 @@ const pool = mysql.createPool({
 // (Optionnel) Test de connexion initiale
 pool.getConnection((err, connection) => {
   if (err) {
-    console.error('❌ Erreur de connexion à la base de données :', err);
+    console.error('Erreur de connexion à la base de données :', err);
     return;
   }
-  console.log('✅ Connexion à la base de données établie');
+  console.log('Connexion à la base de données établie');
   connection.release();
 });
 
