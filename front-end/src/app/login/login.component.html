@@ -1,31 +1,35 @@
+<!-- Conteneur principal de la page de connexion -->
 <div class="container">
+  <!-- Carte centrée contenant le formulaire de connexion -->
   <div class="login-card">
+    <!-- En-tête avec le titre de l'application -->
     <header>
       <h1 class="text-center">RecruitMIAGE</h1>
     </header>
 
+    <!-- Section principale contenant le formulaire -->
     <main>
-      <!-- Formulaire de connexion -->
+      <!-- Formulaire de connexion, appelle onSubmit() lors de la soumission -->
       <form (ngSubmit)="onSubmit()" novalidate class="mt-4">
-        <!-- Message d'erreur -->
+        <!-- Affichage d'un message d'erreur si errorMessage est défini -->
         <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
           {{ errorMessage }}
         </div>
 
-    <!-- Champ pour l'email de l'utilisateur -->
-    <div class="mb-3">
-      <label for="User" class="form-label">Nom d'utilisateur :</label>
-      <input 
-        type="text" 
-        id="User" 
-        class="form-control" 
-        placeholder="Entrez votre nom d'utilisateur" 
-        [(ngModel)]="User" 
-        name="User" 
-        required>
-    </div>
+        <!-- Champ pour saisir le nom d'utilisateur -->
+        <div class="mb-3">
+          <label for="User" class="form-label">Nom d'utilisateur :</label>
+          <input 
+            type="text" 
+            id="User" 
+            class="form-control" 
+            placeholder="Entrez votre nom d'utilisateur" 
+            [(ngModel)]="User" 
+            name="User" 
+            required>
+        </div>
 
-        <!-- Champ pour le mot de passe de l'utilisateur -->
+        <!-- Champ pour saisir le mot de passe -->
         <div class="mb-3">
           <label for="password" class="form-label">Mot de passe :</label>
           <input 
@@ -38,11 +42,13 @@
             required>
         </div>
 
-        <!-- Bouton pour soumettre le formulaire de connexion -->
+        <!-- Bouton de soumission du formulaire -->
         <button type="submit" class="btn btn-primary">Connect</button>
 
-    <!-- Lien pour la récupération du mot de passe -->
-    <br>
-    <a [routerLink]="['/forgot-password']" class="d-block mt-2">Mot de passe oublié ?</a>
-  </form>
-</main>
+        <!-- Lien vers la page de récupération du mot de passe -->
+        <br>
+        <a [routerLink]="['/forgot-password']" class="d-block mt-2">Mot de passe oublié ?</a>
+      </form>
+    </main>
+  </div>
+</div>
