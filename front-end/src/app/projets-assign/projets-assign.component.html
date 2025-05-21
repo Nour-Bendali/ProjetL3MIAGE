@@ -1,32 +1,35 @@
+<!-- Conteneur principal pour la page d'assignation de membres à un projet -->
 <div class="container mt-5">
+    <!-- Carte contenant le formulaire d'assignation -->
     <div class="card shadow-sm">
-        <div class="card-body">
-            <h2 class="card-title text-center mb-4">Assigner un membre à un projet</h2>
-            
-            <!-- Choix du projet -->
-            <div class="mb-3">
-                <label for="projet" class="form-label">Projet :</label>
-                <select id="projet" [(ngModel)]="selectedProjetId" class="form-select">
-                    <option *ngFor="let projet of projets" [value]="projet.IdProjet">
-                        {{ projet.NomProjet }}
-                    </option>
-                </select>
-            </div>
-
-            <!-- Choix du personnel -->
-            <div class="mb-3">
-                <label for="personnel" class="form-label">Personnel :</label>
-                <select id="personnel" [(ngModel)]="selectedPersonnelId" class="form-select">
-                    <option *ngFor="let membre of personnel" [value]="membre.Identifiant">
-                        {{ membre.Prenom }} {{ membre.Nom }}
-                    </option>
-                </select>
-            </div>
-
-            <!-- Bouton pour assigner -->
-            <button (click)="assignPersonnel()" class="btn btn-primary w-100">
-                Assigner
-            </button>
+      <div class="card-body">
+        <!-- Titre de la section -->
+        <h2 class="card-title text-center mb-4">Assigner un membre à un projet</h2>
+        
+        <!-- Sélection du projet -->
+        <div class="mb-3">
+          <label for="projet" class="form-label">Projet :</label>
+          <select id="projet" [(ngModel)]="selectedProjetId" class="form-select">
+            <option *ngFor="let projet of projets" [value]="projet.IdProjet">
+              {{ projet.NomProjet }}
+            </option>
+          </select>
         </div>
+  
+        <!-- Sélection du personnel -->
+        <div class="mb-3">
+          <label for="personnel" class="form-label">Personnel :</label>
+          <select id="personnel" [(ngModel)]="selectedPersonnelId" class="form-select">
+            <option *ngFor="let membre of personnel" [value]="membre.Identifiant">
+              {{ membre.Prenom }} {{ membre.Nom }}
+            </option>
+          </select>
+        </div>
+  
+        <!-- Bouton pour effectuer l'assignation -->
+        <button (click)="assignPersonnel()" class="btn btn-primary w-100">
+          Assigner
+        </button>
+      </div>
     </div>
-</div>
+  </div>
