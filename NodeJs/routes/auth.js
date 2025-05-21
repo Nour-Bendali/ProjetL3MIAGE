@@ -6,7 +6,6 @@ const db = require('../db');
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = 'RECRUIT_SECRET_KEY_JWT_2025'; // TODO: déplacer vers .env
 
-// 🔐 Route de login
 router.post('/login', (req, res) => {
   const { User, password } = req.body;
 
@@ -34,12 +33,12 @@ router.post('/login', (req, res) => {
       { expiresIn: '2h' }
     );
 
-    console.log('✅ Connexion réussie pour l’utilisateur ID :', user.Identifiant);
+    console.log('Connexion réussie pour l’utilisateur ID :', user.Identifiant);
     res.status(200).json({ success: true, token });
   });
 });
 
-// 🔍 Vérifier qu’un utilisateur existe (forgot-password)
+//  Vérifier qu’un utilisateur existe (forgot-password)
 router.post('/verify-user', (req, res) => {
   const { username } = req.body;
 
@@ -50,7 +49,7 @@ router.post('/verify-user', (req, res) => {
   const query = 'SELECT Identifiant FROM Personnel WHERE User = ?';
   db.execute(query, [username], (err, results) => {
     if (err) {
-      console.error('❌ Erreur SQL verify-user :', err);
+      console.error(' Erreur SQL verify-user :', err);
       return res.status(500).json({ success: false, error: 'Erreur SQL' });
     }
 
@@ -59,12 +58,12 @@ router.post('/verify-user', (req, res) => {
     }
 
     const user = results[0];
-    console.log('✅ Utilisateur trouvé pour réinitialisation : ID', user.Identifiant);
+    console.log('Utilisateur trouvé pour réinitialisation : ID', user.Identifiant);
     res.status(200).json({ success: true });
   });
 });
 
-// 🔄 Réinitialiser le mot de passe (reset-password)
+
 router.post('/reset-password', (req, res) => {
   const { username, newPassword } = req.body;
 
@@ -75,7 +74,7 @@ router.post('/reset-password', (req, res) => {
   const query = 'UPDATE Personnel SET Password = ? WHERE User = ?';
   db.execute(query, [newPassword, username], (err, result) => {
     if (err) {
-      console.error('❌ Erreur SQL reset-password :', err);
+      console.error('Erreur SQL reset-password :', err);
       return res.status(500).json({ success: false, error: 'Erreur SQL' });
     }
 
@@ -83,7 +82,7 @@ router.post('/reset-password', (req, res) => {
       return res.status(404).json({ success: false, error: 'Utilisateur introuvable.' });
     }
 
-    console.log('✅ Mot de passe réinitialisé pour :', username);
+    console.log('Mot de passe réinitialisé pour :', username);
     res.status(200).json({ success: true });
   });
 });

@@ -36,7 +36,7 @@ router.get('/projets/:id/missions', (req, res) => {
   `;
   db.execute(query, [id], (err, results) => {
     if (err) {
-      console.error('❌ Erreur lors de la récupération des missions :', err);
+      console.error(' Erreur lors de la récupération des missions :', err);
       return res.status(500).json({ success: false, error: 'Erreur interne du serveur.' });
     }
     res.status(200).json(results);
@@ -61,11 +61,11 @@ router.post('/', (req, res) => {
 
   db.execute(query, [idProjet, titre, description], (err, result) => {
     if (err) {
-      console.error('❌ Erreur lors de la création de la mission :', err);
+      console.error(' Erreur lors de la création de la mission :', err);
       return res.status(500).json({ success: false, error: 'Erreur serveur.' });
     }
 
-    console.log(`✅ Mission "${titre}" créée pour le projet ${idProjet}`);
+    console.log(`Mission "${titre}" créée pour le projet ${idProjet}`);
     res.status(201).json({ success: true, id: result.insertId });
   });
 });

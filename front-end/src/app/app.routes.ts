@@ -29,9 +29,7 @@ export const routes: Routes = [
   { path: 'mission-list', component: MissionListComponent },
   { path: 'projets/:id/missions', component: MissionListComponent, data: { renderMode: 'ssr' } },
   { path: 'competences-assign', component: CompetencesAssignComponent },
-  // ✅ Routes pour les projets
-  { path: 'projets/:id', component: ProjetComponent, data: { renderMode: 'ssr' } }, // Vue principale d'un projet
-  //{ path: 'projet-form/:id', component: ProjetsFormComponent }, // Formulaire pour gérer les membres
+  { path: 'projets/:id', component: ProjetComponent, data: { renderMode: 'ssr' } },
 
   { path: 'mission-form', component: MissionFormComponent },
   { path: 'mission-assign', component: MissionAssignComponent },

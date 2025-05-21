@@ -1,12 +1,12 @@
 const db = require('../db');
 
 async function canAccessProjet(req, res, next) {
-  console.log('🎯 Middleware canAccessProjet atteint');
+  console.log(' Middleware canAccessProjet atteint');
 
   const projetId = parseInt(req.params.id, 10);
   const userId = req.user?.id;
 
-  console.log('🔎 projectId:', projetId, '| userId:', userId);
+  console.log(' projectId:', projetId, '| userId:', userId);
 
   if (!userId || isNaN(projetId) || projetId <= 0) {
     return res.status(400).json({ error: 'Requête invalide (ID projet).' });
@@ -19,7 +19,7 @@ async function canAccessProjet(req, res, next) {
     );
     const projet = projetResult[0];
     if (projet?.CreateurId === userId) {
-      console.log('✅ Accès autorisé - créateur');
+      console.log(' Accès autorisé - créateur');
       return next();
     }
 
@@ -28,15 +28,15 @@ async function canAccessProjet(req, res, next) {
       [projetId, userId]
     );
     if (membreResult.length > 0) {
-      console.log('✅ Accès autorisé - membre');
+      console.log(' Accès autorisé - membre');
       return next();
     }
 
-    console.warn('⛔ Refusé - ni créateur ni membre');
+    console.warn(' Refusé - ni créateur ni membre');
     return res.status(403).json({ error: "Accès interdit à ce projet." });
 
   } catch (err) {
-    console.error('💥 Erreur middleware canAccessProjet:', err);
+    console.error(' Erreur middleware canAccessProjet:', err);
     return res.status(500).json({ error: 'Erreur serveur interne.' });
   }
 }

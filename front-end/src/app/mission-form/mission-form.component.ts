@@ -11,8 +11,8 @@ import { ProjetService } from '../services/projet.service';
   templateUrl: './mission-form.component.html'
 })
 export class MissionFormComponent implements OnInit {
-  @Input() projetId?: number; // ✅ Injecté automatiquement si utilisé dans une page projet
-  @Output() missionCree = new EventEmitter<void>(); // ✅ Pour rafraîchir dynamiquement
+  @Input() projetId?: number; // 
+  @Output() missionCree = new EventEmitter<void>(); 
 
   missionForm!: FormGroup;
   projets: any[] = [];
@@ -37,7 +37,7 @@ export class MissionFormComponent implements OnInit {
           this.projets = data.projets ?? data; // selon la forme
         },
         error: (err) => {
-          console.error('❌ Erreur lors du chargement des projets', err);
+          console.error(' Erreur lors du chargement des projets', err);
           alert('Erreur lors du chargement des projets.');
         }
       });
@@ -51,12 +51,12 @@ export class MissionFormComponent implements OnInit {
 
     this.missionService.createMission(this.missionForm.value).subscribe({
       next: () => {
-        alert('✅ Mission créée avec succès');
+        alert('Mission créée avec succès');
         this.missionForm.reset();
         this.missionCree.emit(); // 🔁 informer le parent de recharger les missions
       },
       error: (err) => {
-        console.error('❌ Erreur mission:', err);
+        console.error('Erreur mission:', err);
         alert('Erreur lors de la création de la mission');
       }
     });

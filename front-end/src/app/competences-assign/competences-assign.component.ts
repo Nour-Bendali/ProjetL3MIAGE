@@ -28,12 +28,12 @@ export class CompetencesAssignComponent implements OnInit {
   isLoading = false;
 
   constructor(
-    private http: HttpClient,               // Added
-    private authService: AuthService        // Added
+    private http: HttpClient,               
+    private authService: AuthService        
   ) {}
 
   ngOnInit(): void {
-    const token = this.authService.getToken();                                        // Added
+    const token = this.authService.getToken();                                    
     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
 
     // Charger toutes les compétences
@@ -41,7 +41,7 @@ export class CompetencesAssignComponent implements OnInit {
       .subscribe({
         next: data => this.competences = data,
         error: err => {
-          console.error('❌ Erreur chargement compétences :', err);
+          console.error('Erreur chargement compétences :', err);
           this.errorMessage = 'Impossible de charger les compétences.';
         }
       });
@@ -67,9 +67,9 @@ export class CompetencesAssignComponent implements OnInit {
       error: err => {
         this.isLoading = false;
         if (err.status === 409) {
-          alert('⚠️ Cette compétence est déjà assignée.');
+          alert('Cette compétence est déjà assignée.');
         } else {
-          console.error('❌ Erreur lors de l’affectation :', err);
+          console.error(' Erreur lors de l’affectation :', err);
           this.errorMessage = 'Erreur lors de l’affectation.';
         }
       }

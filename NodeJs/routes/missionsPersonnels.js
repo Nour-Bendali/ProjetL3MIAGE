@@ -51,10 +51,7 @@ router.get('/:id/personnel/with-competences', (req, res) => {
 });
 
 
-/**
- * GET /api/missions/:id/personnel
- *   Récupère les membres déjà assignés à une mission
- */
+
 router.get('/:id/personnel', (req, res) => {
   const missionId = req.params.id;
   const sql = `
@@ -78,10 +75,7 @@ router.get('/:id/personnel', (req, res) => {
   });
 });
 
-/**
- * POST /api/missions/:id/assign
- *   Assignation d’un membre à la mission
- */
+
 router.post('/:id/assign', (req, res) => {
   const missionId   = req.params.id;
   const idPersonnel = req.body.idPersonnel;
@@ -102,10 +96,7 @@ router.post('/:id/assign', (req, res) => {
   });
 });
 
-/**
- * DELETE /api/missions/:id/:personnelId
- *   Retire un membre d’une mission
- */
+
 router.delete('/:id/:personnelId', (req, res) => {
   const missionId   = req.params.id;
   const personnelId = req.params.personnelId;
