@@ -75,6 +75,7 @@ router.post('/reset-password', (req, res) => {
   db.execute(query, [newPassword, username], (err, result) => {
     if (err) {
       console.error('Erreur SQL reset-password :', err);
+      console.error('Erreur SQL reset-password :', err);
       return res.status(500).json({ success: false, error: 'Erreur SQL' });
     }
 
@@ -82,6 +83,7 @@ router.post('/reset-password', (req, res) => {
       return res.status(404).json({ success: false, error: 'Utilisateur introuvable.' });
     }
 
+    console.log('Mot de passe réinitialisé pour :', username);
     console.log('Mot de passe réinitialisé pour :', username);
     res.status(200).json({ success: true });
   });

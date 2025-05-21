@@ -1,12 +1,16 @@
+<!-- Conteneur principal de la page de gestion du personnel -->
 <div class="container">
 
+  <!-- Bouton pour revenir à la page précédente -->
   <button class="btn btn-secondary mb-3" (click)="goBack()">Retour</button>
 
+  <!-- Titre de la page -->
   <h2>Gestion du Personnel</h2>
 
-  <!-- Ajouter un membre -->
+  <!-- Section pour ajouter un membre au projet -->
   <h4>Ajouter un membre au projet</h4>
   <div class="input-group mb-4">
+    <!-- Liste déroulante des membres disponibles -->
     <select
       class="form-select"
       name="availableSelect"
@@ -20,7 +24,7 @@
         {{ p.Prenom }} {{ p.Nom }}
       </option>
     </select>
-    <!-- [disabled]="!isCreator || !selectedAvailablePersonnelId" -->
+    <!-- Bouton pour ajouter le membre sélectionné -->
     <button
       class="btn btn-primary"
       (click)="addMember()"
@@ -29,9 +33,10 @@
     </button>
   </div>
 
-  <!-- Supprimer un membre -->
+  <!-- Section pour supprimer un membre du projet -->
   <h4>Supprimer un membre du projet</h4>
   <div class="input-group mb-4">
+    <!-- Liste déroulante des membres actuellement affectés -->
     <select
       class="form-select"
       name="assignedSelect"
@@ -45,7 +50,7 @@
         {{ p.Prenom }} {{ p.Nom }}
       </option>
     </select>
-    <!-- [disabled]="!isCreator || !selectedAssignedPersonnelId" -->
+    <!-- Bouton pour supprimer le membre sélectionné -->
     <button
       class="btn btn-danger"
       (click)="removeMember()"

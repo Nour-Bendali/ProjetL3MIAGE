@@ -1,22 +1,28 @@
+<!-- Conteneur principal de la page des détails d’un projet -->
 <div class="container">
-  <header class="page-header">
-    <img src="assets/images/miage_logo.jpg" alt="Logo MIAGE" class="school-logo">
-  </header>
+    <!-- Carte contenant les détails du projet -->
   <div class="projet-card">
+    <!-- Titre de la section -->
     <h2>Détails du Projet</h2>
 
+    <!-- Affichage d’un message d’erreur si une erreur survient -->
     <div *ngIf="errorMessage" class="alert alert-danger">
       {{ errorMessage }}
     </div>
 
+    <!-- Contenu du projet, affiché uniquement si les données sont chargées -->
     <div *ngIf="projet && !errorMessage; else loading">
+      <!-- Nom du projet -->
       <h3>{{ projet.NomProjet }}</h3>
+      <!-- Description du projet -->
       <p><strong>Description :</strong> {{ projet.Description }}</p>
 
+      <!-- Liste des membres associés au projet -->
       <h4>Membres associés</h4>
       <ul class="member-list">
         <li *ngFor="let membre of membres" class="member-item">
           {{ membre.Prenom }} {{ membre.Nom }}
+          <!-- Liste des compétences de chaque membre -->
           <ul>
             <li *ngFor="let comp of membre.competences">
               {{ comp.Competence }}
@@ -25,6 +31,7 @@
         </li>
       </ul>
 
+      <!-- Liste des missions associées au projet -->
       <h4>Missions du projet</h4>
       <app-mission-list
         [projectId]="projectId"
@@ -32,12 +39,14 @@
         (missionsUpdated)="onMissionsUpdated($event)">
       </app-mission-list>
 
+      <!-- Formulaire pour ajouter une nouvelle mission -->
       <h4>Ajouter une mission</h4>
       <app-mission-form
         [projetId]="projectId"
         (missionCree)="refreshMissions()">
       </app-mission-form>
 
+      <!-- Bouton pour gérer les membres du projet -->
       <button
         class="btn btn-primary"
         [routerLink]="['/projets', projectId, 'personnel']">
@@ -45,8 +54,10 @@
       </button>
     </div>
 
+    <!-- Bouton pour retourner au tableau de bord -->
     <button class="btn btn-secondary" (click)="retour()">Retour au tableau de bord</button>
 
+    <!-- Template affiché pendant le chargement des données -->
     <ng-template #loading>
       <p>Chargement du projet...</p>
     </ng-template>
