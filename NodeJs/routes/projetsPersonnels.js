@@ -1,10 +1,9 @@
-// routes/projetsPersonnels.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// 1) Listar miembros asignados
-router.get('/:id',(req, res) => {
+// Récupère tous les membres affectés à un projet, avec leurs compétences.
+router.get('/:id', (req, res) => {
   const projectId = req.params.id;
   const sql = `
     SELECT
@@ -26,7 +25,7 @@ router.get('/:id',(req, res) => {
   db.execute(sql, [projectId], (err, rows) => {
     if (err) {
       console.error('Erreur SQL:', err);
-      return res.status(500).json({ error: 'Erreur SQL' });
+      return res.status(500).json({ success: false, error: 'Erreur SQL' });
     }
     const map = {};
     rows.forEach(r => {
@@ -46,36 +45,36 @@ router.get('/:id',(req, res) => {
         });
       }
     });
-    res.json(Object.values(map));
-  });
+    res.status(200).json(Object.values(map));
+});
 });
 
-
-router.post('/',(req, res) => {
+// Assigne un membre à un projet.
+router.post('/', (req, res) => {
   const { IdProjet, IdPersonnel } = req.body;
   if (!IdProjet || !IdPersonnel) {
-    return res.status(400).json({ error: 'Champs requis' });
+    return res.status(400).json({ success: false, error: 'Champs IdProjet et IdPersonnel requis' });
   }
   const sql = 'INSERT INTO projetspersonnel (IdProjet, IdPersonnel) VALUES (?, ?)';
   db.execute(sql, [IdProjet, IdPersonnel], err => {
     if (err) {
       console.error('Erreur SQL:', err);
-      return res.status(500).json({ error: 'Erreur SQL' });
+      return res.status(500).json({ success: false, error: 'Erreur SQL' });
     }
-    res.json({ success: true });
+    res.status(201).json({ success: true });
   });
 });
 
-
+// Désassigne un membre d’un projet.
 router.delete('/:idProjet/:idPersonnel', (req, res) => {
   const { idProjet, idPersonnel } = req.params;
   const sql = 'DELETE FROM projetspersonnel WHERE IdProjet = ? AND IdPersonnel = ?';
   db.execute(sql, [idProjet, idPersonnel], err => {
     if (err) {
       console.error('Erreur SQL:', err);
-      return res.status(500).json({ error: 'Erreur SQL' });
+      return res.status(500).json({ success: false, error: 'Erreur SQL' });
     }
-    res.json({ success: true });
+    res.status(200).json({ success: true });
   });
 });
 

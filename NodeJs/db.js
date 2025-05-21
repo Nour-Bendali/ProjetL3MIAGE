@@ -2,12 +2,9 @@ const mysql = require('mysql2');
 
 // Configuration du pool de connexions MySQL
 const pool = mysql.createPool({
-  host: 'localhost',      // À adapter
-  user: 'root',           // À adapter
-  password: '',           // À adapter
   host: 'localhost',      
   user: 'root',           
-  password: 'MdMNB01010192@',           // À adapter
+  password: '',  
   database: 'recruitmiage',
   waitForConnections: true,
   connectionLimit: 10,

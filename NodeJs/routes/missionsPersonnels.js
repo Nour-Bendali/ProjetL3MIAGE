@@ -1,9 +1,8 @@
-// routes/missionsPersonnels.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// GET /missions/:id/personnel/with-competences
+// Récupère tous les membres affectés à une mission, avec leurs compétences.
 router.get('/:id/personnel/with-competences', (req, res) => {
   const idMission = req.params.id;
 
@@ -25,7 +24,7 @@ router.get('/:id/personnel/with-competences', (req, res) => {
   `;
 
   db.execute(sql, [idMission], (err, rows) => {
-    if (err) return res.status(500).json({ error: 'Erreur SQL' });
+    if (err) return res.status(500).json({ success: false, error: 'Erreur SQL' });
 
     const map = new Map();
     rows.forEach(r => {
@@ -50,11 +49,7 @@ router.get('/:id/personnel/with-competences', (req, res) => {
   });
 });
 
-
-/**
- * GET /api/missions/:id/personnel
- *   Récupère les membres déjà assignés à une mission
- */
+// Récupère tous les membres affectés à une mission sans leurs compétences.
 router.get('/:id/personnel', (req, res) => {
   const missionId = req.params.id;
   const sql = `
@@ -71,41 +66,34 @@ router.get('/:id/personnel', (req, res) => {
   db.execute(sql, [missionId], (err, rows) => {
     if (err) {
       console.error('Erreur SQL:', err);
-      return res.status(500).json({ error: 'Erreur SQL', details: err.message });
+      return res.status(500).json({ success: false, error: 'Erreur SQL', details: err.message });
     }
-    // Même si rows === [], renvoyer tableau vide
     res.status(200).json(rows);
   });
 });
 
-/**
- * POST /api/missions/:id/assign
- *   Assignation d’un membre à la mission
- */
+// Assigne un membre à une mission.
 router.post('/:id/assign', (req, res) => {
   const missionId   = req.params.id;
   const idPersonnel = req.body.idPersonnel;
   if (!idPersonnel) {
-    return res.status(400).json({ error: 'idPersonnel requis' });
+    return res.status(400).json({ success: false, error: 'idPersonnel requis' });
   }
 
   const sql = `INSERT INTO MissionsPersonnel (IdMission, IdPersonnel) VALUES (?, ?)`;
   db.execute(sql, [missionId, idPersonnel], err => {
     if (err) {
       if (err.code === 'ER_DUP_ENTRY') {
-        return res.status(409).json({ message: 'Ce membre est déjà assigné' });
+        return res.status(409).json({ success: false, message: 'Ce membre est déjà assigné' });
       }
       console.error('Erreur SQL:', err);
-      return res.status(500).json({ error: 'Erreur SQL', details: err.message });
+      return res.status(500).json({ success: false, error: 'Erreur SQL', details: err.message });
     }
     res.status(201).json({ success: true });
   });
 });
 
-/**
- * DELETE /api/missions/:id/:personnelId
- *   Retire un membre d’une mission
- */
+// Désassigne un membre d’une mission.
 router.delete('/:id/:personnelId', (req, res) => {
   const missionId   = req.params.id;
   const personnelId = req.params.personnelId;
@@ -113,7 +101,7 @@ router.delete('/:id/:personnelId', (req, res) => {
   db.execute(sql, [missionId, personnelId], err => {
     if (err) {
       console.error('Erreur SQL:', err);
-      return res.status(500).json({ error: 'Erreur SQL', details: err.message });
+      return res.status(500).json({ success: false, error: 'Erreur SQL', details: err.message });
     }
     res.status(200).json({ success: true });
   });

@@ -1,5 +1,4 @@
 // src/app/mission-assign/mission-assign.component.ts
-
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
@@ -40,7 +39,7 @@ export class MissionAssignComponent implements OnInit {
     ).subscribe({
       next: data => this.personnel = data,
       error: err => {
-        console.error('❌ Erreur chargement membres:', err);
+        console.error('Erreur chargement membres:', err);
         this.errorMessage = 'Impossible de charger les membres.';
       }
     });
@@ -68,7 +67,7 @@ export class MissionAssignComponent implements OnInit {
         if (err.status === 409) {
           this.errorMessage = 'Ce membre est déjà assigné à cette mission';
         } else {
-          console.error('❌ Erreur assignation mission:', err);
+          console.error('Erreur assignation mission:', err);
           this.errorMessage = 'Erreur lors de l’assignation de la mission';
         }
       }

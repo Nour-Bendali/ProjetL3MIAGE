@@ -13,7 +13,7 @@ router.get('/:idMission/competences', (req, res) => {
   `;
   db.execute(sql, [idMission], (err, rows) => {
     if (err) {
-      console.error('❌ Erreur SQL:', err);
+      console.error('Erreur SQL:', err);
       return res.status(500).json({ error: 'Erreur SQL', details: err.message });
     }
     res.json(rows);
@@ -41,13 +41,13 @@ router.post('/:idMission/competences', (req, res) => {
   db.query(query, [idMission, idCompetence], (err, result) => {
     if (err) {
       if (err.code === 'ER_DUP_ENTRY') {
-        console.warn(`⚠️ La compétence ${idCompetence} est déjà assignée à la mission ${idMission}.`);
+        console.warn(`La compétence ${idCompetence} est déjà assignée à la mission ${idMission}.`);
         return res.status(409).json({ 
           success: false, 
           error: 'La compétence est déjà assignée à cette mission.' 
         });
       }
-      console.error('❌ Erreur lors de l\'ajout de la compétence à la mission:', err);
+      console.error(' Erreur lors de l\'ajout de la compétence à la mission:', err);
       return res.status(500).json({ success: false, error: 'Erreur serveur.' });
     }
     res.status(201).json({ success: true, id: result.insertId });
@@ -64,7 +64,7 @@ router.delete('/:idMission/competences/:idCompetence', (req, res) => {
 
   db.query(query, [idMission, idCompetence], (err, result) => {
     if (err) {
-      console.error('❌ Erreur lors de la suppression de la compétence de la mission:', err);
+      console.error('Erreur lors de la suppression de la compétence de la mission:', err);
       return res.status(500).json({ success: false, error: 'Erreur serveur.' });
     }
     res.json({ success: true, affectedRows: result.affectedRows });

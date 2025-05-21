@@ -1,33 +1,43 @@
+
 <div class="form-wrapper">
   <div class="form-card">
     <h2 class="form-title">Créer un nouveau projet</h2>
+    <!-- Début du formulaire Angular : déclenche createProjet() au submit -->
     <form (ngSubmit)="createProjet()" class="projet-form">
+
+      <!-- Groupe pour le champ Nom du projet -->
       <div class="input-group">
         <label for="nomProjet">Nom du projet</label>
         <div class="input-wrapper">
-          <input 
+          
+          <input
             id="nomProjet"
-            [(ngModel)]="nouveauProjet.nomProjet" 
-            name="nomProjet" 
-            required 
+            [(ngModel)]="nouveauProjet.nomProjet"
+            name="nomProjet"
+            required
             placeholder="Un nom épique pour ton projet..."
           >
         </div>
       </div>
+
+      <!-- Groupe pour le champ Description -->
       <div class="input-group">
         <label for="description">Description</label>
         <div class="input-wrapper">
-          <textarea 
+          <textarea
             id="description"
-            [(ngModel)]="nouveauProjet.description" 
-            name="description" 
+            [(ngModel)]="nouveauProjet.description"
+            name="description"
             placeholder="       Raconte ton projet..."
           ></textarea>
         </div>
       </div>
+
+      <!-- Bouton de soumission : désactivé si le nom est vide -->
       <button type="submit" [disabled]="!nouveauProjet.nomProjet" class="submit-btn">
         Créer <span class="rocket"></span>
       </button>
+
     </form>
   </div>
 </div>

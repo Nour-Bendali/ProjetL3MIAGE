@@ -1,5 +1,3 @@
-// src/app/auth.service.ts
-
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -25,7 +23,7 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  /** 🔒 Connexion */
+  /* Connexion */
   login(user: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(
       `${this.baseUrl}/login`,
@@ -33,7 +31,7 @@ export class AuthService {
     );
   }
 
-  /** 🔍 Vérifie qu’un utilisateur existe avant reset */
+  /* Vérifie qu’un utilisateur existe avant reset */
   verifyUser(username: string): Observable<VerifyResponse> {
     return this.http.post<VerifyResponse>(
       `${this.baseUrl}/verify-user`,
@@ -41,7 +39,7 @@ export class AuthService {
     );
   }
 
-  /** 🔑 Réinitialise le mot de passe */
+  /*Réinitialise le mot de passe */
   resetPassword(username: string, newPassword: string): Observable<ResetResponse> {
     return this.http.post<ResetResponse>(
       `${this.baseUrl}/reset-password`,
@@ -51,17 +49,17 @@ export class AuthService {
 
   getToken(): string | null {
     if (typeof window === 'undefined') {
-      return null; // ✅ Sécurité SSR : pas de localStorage côté serveur
+      return null; //  
     }
      return localStorage.getItem('token');
   }
 
-  /** 📤 Stocke le JWT dans localStorage */
+  /*Stocke le JWT dans localStorage */
   setToken(token: string): void {
   localStorage.setItem('token', token);
 }
 
-  /** ❌ Supprime le JWT (logout) */
+  /* Supprime le JWT (logout) */
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
   }
