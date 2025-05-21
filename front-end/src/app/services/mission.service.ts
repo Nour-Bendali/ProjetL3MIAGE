@@ -131,6 +131,4 @@ getCompetencesRequises(missionId: number): Observable<Competence[]> {
     { headers }
   );
 }
-
-
 }

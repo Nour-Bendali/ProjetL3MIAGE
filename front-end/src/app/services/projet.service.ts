@@ -1,11 +1,9 @@
-// src/app/services/projet.service.ts
-
+// Imports
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from '../auth.service';
 
-/** ------------- Interfaces pour les membres et leurs compétences ------------- */
 export interface Competence {
   IdCompetence: string;
   Competence:   string;
@@ -23,20 +21,18 @@ export interface ProjetCreate {
   nomProjet: string;
   description: string;
 }
-/** ------------------------------------------------------------------------------- */
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjetService {
-  // Base URL pour les projets
   private apiUrl = 'http://localhost:3000/api/projets';
-  // URL dédiée au point d'accès "projets-personnel"
   private projetsPersonnelUrl = 'http://localhost:3000/api/projets-personnel';
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService  // inject AuthService pour récupérer le JWT
+    private authService: AuthService 
   ) {}
 
   // 🔹 Récupérer tous les projets
@@ -58,7 +54,7 @@ export class ProjetService {
 
   // 🔹 Créer un nouveau projet
   createProjet(projet: ProjetCreate): Observable<any> {
-    const token = this.authService.getToken();  // récupérer le JWT stocké
+    const token = this.authService.getToken();  
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.post<any>(
       this.apiUrl,

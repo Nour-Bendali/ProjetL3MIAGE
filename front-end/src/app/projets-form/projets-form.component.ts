@@ -1,9 +1,9 @@
-// src/app/projets-form.component.ts
+// Imports
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';  
+import { RouterModule } from '@angular/router';     
 import { FormsModule } from '@angular/forms';
-import { ProjetService, ProjetCreate } from '../services/projet.service'; // Updated import path
+import { ProjetService, ProjetCreate } from '../services/projet.service'; 
 
 @Component({
   selector: 'app-projets-form',
@@ -13,14 +13,22 @@ import { ProjetService, ProjetCreate } from '../services/projet.service'; // Upd
   styleUrls: ['./projets-form.component.css']
 })
 export class ProjetsFormComponent implements OnInit {
-  nouveauProjet: ProjetCreate = { nomProjet: '', description: '' }; // Removed createurId, using ProjetCreate
+  nouveauProjet: ProjetCreate = { nomProjet: '', description: '' };
+  // Tableau pour stocker et afficher la liste des projets existants
   projets: any[] = [];
 
-  constructor(private projetService: ProjetService) {} // inject ProjetService
+  constructor(private projetService: ProjetService) {}
 
+  /** Au démarrage du composant, on charge la liste des projets */
   ngOnInit(): void {
     this.loadProjets();
   }
+
+
+  /**
+   * - En cas de succès : on stocke les données dans `projets`
+   * - En cas d’erreur : log dans la console
+   */
 
   loadProjets(): void {
     this.projetService.getAllProjets().subscribe({
@@ -31,6 +39,10 @@ export class ProjetsFormComponent implements OnInit {
     });
   }
 
+  /**
+   * - Si succès : alerte, réinitialisation du formulaire et rechargement de la liste
+   * - Si erreur : alerte et log
+   */
   createProjet(): void {
     this.projetService.createProjet(this.nouveauProjet).subscribe({
       next: (response: any) => {
