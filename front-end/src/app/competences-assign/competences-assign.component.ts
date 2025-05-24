@@ -1,10 +1,8 @@
 // src/app/competences-assign/competences-assign.component.ts
-
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule }    from '@angular/common';
 import { FormsModule }     from '@angular/forms';
-import { HttpClientModule, HttpClient, HttpHeaders } from '@angular/common/http'; // Added HttpClient & HttpHeaders
-import { AuthService }     from '../auth.service';                              // Added AuthService
+import { HttpClientModule, HttpClient, HttpHeaders } from '@angular/common/http'; // Added HttpClient & HttpHeaders                              // Added AuthService
 
 interface CompetenceOption {
   IdentifiantC: string;
@@ -28,35 +26,31 @@ export class CompetencesAssignComponent implements OnInit {
   isLoading = false;
 
   constructor(
-    private http: HttpClient,               
-    private authService: AuthService        
+    private http: HttpClient      
   ) {}
 
   ngOnInit(): void {
-    const token = this.authService.getToken();                                    
-    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
-
-    // Charger toutes les compétences
-    this.http.get<CompetenceOption[]>('http://localhost:3000/api/competences', { headers })
+    this.http.get<{ success: boolean, data: CompetenceOption[] }>('http://localhost:3000/api/competences')
       .subscribe({
-        next: data => this.competences = data,
+        next: res => {
+          console.log('▶ Données reçues de l’API compétences :', res);
+          this.competences = res.data;
+        },
         error: err => {
           console.error('Erreur chargement compétences :', err);
           this.errorMessage = 'Impossible de charger les compétences.';
         }
       });
   }
+  
+
 
   assignCompetence(): void {
     if (!this.selectedCompetenceId) return;
-    this.isLoading = true;
-    const token = this.authService.getToken();                                        // Added
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);         // Added
-
+    this.isLoading = true;    // Added
     this.http.post(
       `http://localhost:3000/api/competences-missions/${this.missionId}/competences`, 
       { idCompetence: this.selectedCompetenceId },
-      { headers }
     ).subscribe({
       next: () => {
         this.isLoading = false;
